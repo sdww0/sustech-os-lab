@@ -5,7 +5,7 @@ _start:
     li      a1, 0xdeadbeef
     lw      a2, 0(a1)
 
-    li      a7, 60              
+    li      a7, 93              
     li      a0, 0               
     ecall  
 
