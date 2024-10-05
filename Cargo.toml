@@ -9,6 +9,7 @@ rev = "96efd62"
 
 [dependencies]
 align_ext= "0.1.0"
+spin = "0.9.4"
 
 [workspace]
 exclude = ["target/osdk/base"]
