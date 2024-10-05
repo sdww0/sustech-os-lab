@@ -126,7 +126,7 @@ fn handle_exception(user_context: &mut UserContext, _user_space: &UserSpace) {
 }
 
 fn handle_syscall(user_context: &mut UserContext, user_space: &UserSpace) {
-    const SYS_DUMMY_CALL: usize = 2;
+    const SYS_DUMMY_CALL: usize = 1;
     const SYS_WRITE: usize = 64;
     const SYS_EXIT: usize = 93;
 
@@ -162,6 +162,8 @@ fn handle_syscall(user_context: &mut UserContext, user_space: &UserSpace) {
             );
             exit_qemu(QemuExitCode::Success)
         }
-        _ => unimplemented!(),
+        val => {
+            todo!("Unimplement syscall: {:?}", val);
+        }
     }
 }
