@@ -120,7 +120,7 @@ fn create_user_task(user_space: Arc<UserSpace>) -> Arc<Task> {
 fn handle_exception(user_context: &mut UserContext, _user_space: &UserSpace) {
     println!(
         "Catch CPU exception, skip this instruction. CPU exception: {:?}",
-        user_context.trap_information().code
+        user_context.trap_information().cpu_exception()
     );
     user_context.set_instruction_pointer(user_context.instruction_pointer() + 2);
 }
