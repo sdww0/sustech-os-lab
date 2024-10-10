@@ -1,0 +1,1 @@
+riscv64-unknown-linux-gnu-gcc -static ./tests/test.c -mabi=lp64 -o user_prog
