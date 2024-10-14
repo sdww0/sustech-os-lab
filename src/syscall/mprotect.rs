@@ -2,9 +2,9 @@
 
 use crate::{
     error::{Errno, Error},
-    mm::VmPerms,
     prelude::*,
     process::current_process,
+    vm::PageFlags,
 };
 use align_ext::AlignExt;
 use log::debug;
@@ -13,7 +13,7 @@ use ostd::mm::{Vaddr, PAGE_SIZE};
 use super::SyscallReturn;
 
 pub fn sys_mprotect(addr: Vaddr, len: usize, perms: u64) -> Result<SyscallReturn> {
-    let vm_perms = VmPerms::from_bits_truncate(perms as u32);
+    let vm_perms = PageFlags::from_bits_truncate(perms as u8);
     debug!(
         "addr = 0x{:x}, len = 0x{:x}, perms = {:?}",
         addr, len, vm_perms

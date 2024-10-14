@@ -20,6 +20,8 @@ pub struct Thread {
     task: Once<Arc<Task>>,
     process: Weak<Process>,
 
+    // Linux specific attributes.
+    // https://man7.org/linux/man-pages/man2/set_tid_address.2.html
     set_child_tid: Mutex<Vaddr>,
     clear_child_tid: Mutex<Vaddr>,
 }

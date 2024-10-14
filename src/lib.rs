@@ -4,15 +4,17 @@
 // The feature `linkage` is required for `ostd::main` to work.
 #![feature(linkage)]
 
+use ostd::early_println;
 use process::Process;
 
 pub mod error;
-pub mod mm;
+pub mod fs;
 pub mod prelude;
 pub mod process;
 pub mod syscall;
 pub mod thread;
 pub mod util;
+pub mod vm;
 
 extern crate alloc;
 
@@ -22,7 +24,9 @@ extern crate alloc;
 /// labeled as `#[ostd::main]` will be called.
 #[ostd::main]
 pub fn main() {
-    let program_binary = include_bytes!("../user_prog");
+    fs::init();
+    early_println!("User_prog:{:?}", fs::USER_PROGS.get().unwrap().keys());
+    let program_binary = fs::USER_PROGS.get().unwrap().get("fork").unwrap();
     let process = Process::new_user_process(program_binary);
     process.run();
 }

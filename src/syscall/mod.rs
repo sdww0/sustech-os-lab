@@ -1,11 +1,13 @@
 // SPDX-License-Identifier: MPL-2.0
 
+pub mod clone;
 pub mod mprotect;
 pub mod write;
 
 use core::str;
 
 use alloc::vec;
+use clone::sys_clone;
 use log::debug;
 use mprotect::sys_mprotect;
 use ostd::{
@@ -13,6 +15,7 @@ use ostd::{
     cpu::UserContext,
     early_print as print, early_println as println,
     mm::{FallibleVmRead, VmWriter},
+    task::Task,
     user::UserSpace,
 };
 use write::sys_writev;
@@ -53,7 +56,12 @@ pub fn handle_syscall(user_context: &mut UserContext, user_space: &UserSpace) {
         user_context.a5(),
     ];
 
-    debug!("Syscall:{:?}, args:{:#x?}", user_context.a7(), args);
+    debug!(
+        "PID: {:?} Syscall:{:?}, args:{:#x?}",
+        current_process().unwrap().pid(),
+        user_context.a7(),
+        args
+    );
 
     let ret: Result<SyscallReturn> = match user_context.a7() {
         SYS_WRITE => {
@@ -85,7 +93,18 @@ pub fn handle_syscall(user_context: &mut UserContext, user_space: &UserSpace) {
                 process.heap.brk(val).unwrap() as isize
             ))
         }
+        SYS_CLONE => sys_clone(
+            args[0] as _,
+            args[1] as _,
+            args[2] as _,
+            args[3] as _,
+            args[4] as _,
+            user_context,
+        ),
         SYS_EXIT | SYS_EXIT_GROUP => {
+            // Go next process, if the process list is empty, then it will exit qemu
+            Task::yield_now();
+
             println!("Exit from userland program, code: 0x{:x}", args[0]);
             exit_qemu(QemuExitCode::Success)
         }
