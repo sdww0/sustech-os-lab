@@ -1,1 +1,0 @@
-riscv64-unknown-linux-gnu-gcc -static ./user/hello_world.c -mabi=lp64 -o user_prog

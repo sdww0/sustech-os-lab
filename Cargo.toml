@@ -5,7 +5,7 @@ edition = "2021"
 
 [dependencies.ostd]
 git = "https://github.com/asterinas/asterinas"
-rev = "96efd62"
+rev = "2f51106"
 
 [dependencies]
 align_ext= "0.1.0"
@@ -16,7 +16,7 @@ riscv = { version = "0.11.1", features = ["s-mode"] }
 id-alloc = "0.1.0"
 int-to-c-enum = "0.1.0"
 bitflags = "1.3"
-
+include_bytes_aligned = "0.1.4"
 
 
 [workspace]

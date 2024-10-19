@@ -1,3 +1,6 @@
 /target
 user_prog
 qemu.log
+
+# Auto generate file
+src/fs/progs.rs
