@@ -3,8 +3,5 @@
 
 int main()
 {
-    printf("Hello World!\n");
-    int val2 = fork();
-    printf("Hello World?12312\n");
-
+    printf("Hello World!, my pid: %d\n", getpid());
 }

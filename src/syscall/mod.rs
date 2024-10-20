@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 
 pub mod mprotect;
+pub mod stat;
 pub mod write;
 
 use core::str;
@@ -9,12 +10,12 @@ use alloc::vec;
 use log::debug;
 use mprotect::sys_mprotect;
 use ostd::{
-    arch::qemu::{exit_qemu, QemuExitCode},
     cpu::UserContext,
-    early_print as print, early_println as println,
+    early_print as print,
     mm::{FallibleVmRead, VmWriter},
     user::UserSpace,
 };
+use stat::sys_fstat;
 use write::sys_writev;
 
 use crate::{
@@ -35,6 +36,8 @@ pub fn handle_syscall(user_context: &mut UserContext, user_space: &UserSpace) {
     const SYS_EXIT_GROUP: usize = 94;
     const SYS_SET_TID_ADDRESS: usize = 96;
     const SYS_SET_ROUBST_LIST: usize = 99;
+    const SYS_GETPID: usize = 172;
+    const SYS_GETPPID: usize = 173;
     const SYS_BRK: usize = 214;
     const SYS_CLONE: usize = 220;
     const SYS_EXECVE: usize = 221;
@@ -53,7 +56,12 @@ pub fn handle_syscall(user_context: &mut UserContext, user_space: &UserSpace) {
         user_context.a5(),
     ];
 
-    debug!("Syscall:{:?}, args:{:#x?}", user_context.a7(), args);
+    debug!(
+        "[PID: {:>3?}] Syscall:{:>3?}, args:{:x?}",
+        current_process().unwrap().pid(),
+        user_context.a7(),
+        args,
+    );
 
     let ret: Result<SyscallReturn> = match user_context.a7() {
         SYS_WRITE => {
@@ -86,13 +94,26 @@ pub fn handle_syscall(user_context: &mut UserContext, user_space: &UserSpace) {
             ))
         }
         SYS_EXIT | SYS_EXIT_GROUP => {
-            println!("Exit from userland program, code: 0x{:x}", args[0]);
-            exit_qemu(QemuExitCode::Success)
+            debug!("Exit from userland program, code: 0x{:x}", args[0]);
+            current_process().unwrap().exit(args[0] as u32);
+            // Go next process, if the process list is empty, then it will exit qemu
+            Ok(SyscallReturn::NoReturn)
         }
+        SYS_GETPID => Ok(SyscallReturn::Return(
+            current_process().unwrap().pid() as isize
+        )),
+        SYS_GETPPID => Ok(SyscallReturn::Return(
+            current_process()
+                .unwrap()
+                .parent_process()
+                .upgrade()
+                .unwrap()
+                .pid() as isize,
+        )),
+        SYS_NEWFSTAT => sys_fstat(args[0] as _, args[1] as _),
         SYS_HWPROBE => Err(Error::new(Errno::ENOSYS)),
         SYS_PRLIMIT64 => Err(Error::new(Errno::ENOSYS)),
         SYS_READLINKAT => Err(Error::new(Errno::ENOSYS)),
-        SYS_NEWFSTAT => Err(Error::new(Errno::ENOSYS)),
         SYS_SET_ROUBST_LIST => Err(Error::new(Errno::ENOSYS)),
         SYS_MPROTECT => sys_mprotect(args[0], args[1], args[2] as _),
         SYS_WRITEV => sys_writev(args[0] as _, args[1], args[2]),
@@ -106,15 +127,13 @@ pub fn handle_syscall(user_context: &mut UserContext, user_space: &UserSpace) {
         }
     };
 
-    let val: isize = match ret {
+    match ret {
         Ok(val) => match val {
-            SyscallReturn::Return(val) => val,
-            SyscallReturn::NoReturn => todo!(),
+            SyscallReturn::Return(val) => user_context.set_a0(val as usize),
+            SyscallReturn::NoReturn => {}
         },
-        Err(err) => -(err.error() as i32 as isize),
+        Err(err) => user_context.set_a0(-(err.error() as i32 as isize) as usize),
     };
-
-    user_context.set_a0(val as usize);
 }
 
 /// Syscall return

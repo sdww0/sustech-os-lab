@@ -1,5 +1,6 @@
 use core::sync::atomic::{AtomicU32, Ordering};
 
+use log::info;
 use ostd::sync::{Mutex, MutexGuard};
 use ostd::task::{Task, TaskOptions};
 
@@ -11,7 +12,7 @@ use ostd::prelude::*;
 use ostd::user::{ReturnReason, UserContextApi, UserMode, UserSpace};
 use spin::Once;
 
-use crate::process::Process;
+use crate::process::{current_process, Process, PROCESS_TABLE};
 
 pub type Tid = u32;
 
@@ -20,6 +21,8 @@ pub struct Thread {
     task: Once<Arc<Task>>,
     process: Weak<Process>,
 
+    // Linux specific attributes.
+    // https://man7.org/linux/man-pages/man2/set_tid_address.2.html
     set_child_tid: Mutex<Vaddr>,
     clear_child_tid: Mutex<Vaddr>,
 }
@@ -49,7 +52,7 @@ impl Thread {
         tid: Tid,
     ) -> Arc<Self> {
         fn user_task() {
-            let current = Task::current().unwrap();
+            let current = current_process().unwrap();
             let mut user_mode = {
                 let user_space = current.user_space().unwrap();
                 UserMode::new(user_space)
@@ -67,7 +70,20 @@ impl Thread {
                     }
                     ReturnReason::KernelEvent => {}
                 }
+                if current.status().is_zombie() {
+                    info!(
+                        "Process exit, pid: {:?}, exit code: {:?}",
+                        current.pid(),
+                        current.status().exit_code()
+                    );
+                    break;
+                }
             }
+            PROCESS_TABLE
+                .lock()
+                .remove(&current.pid())
+                .unwrap()
+                .reparent_children_to_init();
         }
 
         let thread = Arc::new(Self {

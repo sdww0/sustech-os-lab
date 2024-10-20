@@ -1,21 +1,24 @@
 use core::sync::atomic::{AtomicUsize, Ordering};
 
 use align_ext::AlignExt;
-use ostd::mm::{FrameAllocOptions, PageFlags, PageProperty, Vaddr, PAGE_SIZE};
+use ostd::mm::{Vaddr, PAGE_SIZE};
+
+use crate::vm::{mapping::VmMapping, PageFlags};
 
 use super::current_process;
 
+#[derive(Debug)]
 pub struct UserHeap {
-    _base: Vaddr,
-    _limit: usize,
+    base: Vaddr,
+    limit: usize,
     current_end: AtomicUsize,
 }
 
 impl UserHeap {
     pub fn new() -> Self {
         Self {
-            _base: 0x1000_0000,
-            _limit: 1024 * PAGE_SIZE,
+            base: 0x1000_0000,
+            limit: 1024 * PAGE_SIZE,
             current_end: AtomicUsize::new(0x1000_0000),
         }
     }
@@ -28,7 +31,6 @@ impl UserHeap {
         match new_end {
             Some(new_end) => {
                 let process = current_process()?;
-                let user_space = process.user_space.clone()?;
                 let current_end = self.current_end.load(Ordering::Acquire);
                 if new_end <= current_end {
                     // FIXME: should we allow shrink current user heap?
@@ -38,25 +40,31 @@ impl UserHeap {
                 let new_vaddr = new_end.align_up(PAGE_SIZE);
 
                 if new_vaddr > old_vaddr {
-                    let frames = FrameAllocOptions::new((new_vaddr - old_vaddr) / PAGE_SIZE)
-                        .alloc()
-                        .unwrap();
-
-                    let mut cursor = user_space
-                        .vm_space()
-                        .cursor_mut(&(old_vaddr..new_vaddr))
-                        .unwrap();
-                    for frame in frames {
-                        cursor.map(
-                            frame,
-                            PageProperty::new(PageFlags::RW, ostd::mm::CachePolicy::Writeback),
-                        );
-                    }
+                    let pages = (new_vaddr - old_vaddr) / PAGE_SIZE;
+                    process
+                        .memory_space
+                        .map(VmMapping::new(old_vaddr, pages, PageFlags::RW));
                 }
                 self.current_end.store(new_end, Ordering::Release);
                 Some(new_end)
             }
             None => Some(self.current_end.load(Ordering::Relaxed)),
+        }
+    }
+}
+
+impl Default for UserHeap {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl Clone for UserHeap {
+    fn clone(&self) -> Self {
+        Self {
+            base: self.base,
+            limit: self.limit,
+            current_end: AtomicUsize::new(self.current_end.load(Ordering::Relaxed)),
         }
     }
 }
