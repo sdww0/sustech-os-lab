@@ -22,26 +22,31 @@ use super::status::ProcessStatus;
 use super::{Pid, PROCESS_TABLE, USER_STACK_SIZE};
 
 pub struct Process {
+    // ======================== Basic info of process ===============================
     /// The id of this process.
     pid: Pid,
     /// Process state
     status: ProcessStatus,
-    // The memory space of this process
+    /// The name of this process, we use executable path for the user process.
+    name: RwLock<String>,
+    /// The threads of this process
+    threads: Mutex<Vec<Arc<Thread>>>,
+
+    // ======================== Memory-related fields ===============================
+    /// The memory space of this process
     pub(super) memory_space: MemorySpace,
     /// The user space of this process contains CPU registers information.
     user_space: Option<Arc<UserSpace>>,
     /// The heap of the user process
     pub(crate) heap: UserHeap,
+
+    // ======================== Process-tree fields =================================
     /// Parent process.
     parent_process: Mutex<Weak<Process>>,
     /// Children process.
     children: Mutex<BTreeMap<Pid, Arc<Process>>>,
     /// The WaitQueue for a child process to become a zombie.
     wait_children_queue: WaitQueue,
-    /// The threads of this process
-    threads: Mutex<Vec<Arc<Thread>>>,
-    /// The name of this process, we use executable path for the user process.
-    name: RwLock<String>,
     // TODO: more field of process, including fd table...
 }
 
