@@ -57,6 +57,8 @@ impl Thread {
                 let user_space = current.user_space().unwrap();
                 UserMode::new(user_space)
             };
+            // Uncomment below! Yield now to allow another process running
+            // Task::yield_now();
 
             loop {
                 let return_reason = user_mode.execute(|| false);

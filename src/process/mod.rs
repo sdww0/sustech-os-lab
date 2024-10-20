@@ -1,8 +1,10 @@
+pub mod clone;
 pub mod heap;
 #[allow(clippy::module_inception)]
 pub mod process;
 pub mod signal;
 pub mod status;
+pub mod wait;
 
 pub type Pid = u32;
 use alloc::{collections::btree_map::BTreeMap, sync::Arc};
