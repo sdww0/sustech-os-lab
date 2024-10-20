@@ -22,7 +22,7 @@ checksum = "c1c330e503236d0b06386ae6cc42a513ef1ccc23c52b603c1b52f018564faf44"
 [[package]]
 name = "align_ext"
 version = "0.1.0"
-source = "git+https://github.com/asterinas/asterinas?rev=2f51106#2f511069eecf521661aa4d8ee3020863be75b543"
+source = "git+https://github.com/asterinas/asterinas?rev=a43b0b6#a43b0b6a529e2ccbef799790694c34a59b82603c"
 
 [[package]]
 name = "aml"
@@ -227,7 +227,7 @@ dependencies = [
 [[package]]
 name = "id-alloc"
 version = "0.1.0"
-source = "git+https://github.com/asterinas/asterinas?rev=2f51106#2f511069eecf521661aa4d8ee3020863be75b543"
+source = "git+https://github.com/asterinas/asterinas?rev=a43b0b6#a43b0b6a529e2ccbef799790694c34a59b82603c"
 dependencies = [
  "bitvec",
 ]
@@ -267,9 +267,9 @@ dependencies = [
 [[package]]
 name = "int-to-c-enum"
 version = "0.1.0"
-source = "git+https://github.com/asterinas/asterinas?rev=2f51106#2f511069eecf521661aa4d8ee3020863be75b543"
+source = "git+https://github.com/asterinas/asterinas?rev=a43b0b6#a43b0b6a529e2ccbef799790694c34a59b82603c"
 dependencies = [
- "int-to-c-enum-derive 0.1.0 (git+https://github.com/asterinas/asterinas?rev=2f51106)",
+ "int-to-c-enum-derive 0.1.0 (git+https://github.com/asterinas/asterinas?rev=a43b0b6)",
 ]
 
 [[package]]
@@ -286,7 +286,7 @@ dependencies = [
 [[package]]
 name = "int-to-c-enum-derive"
 version = "0.1.0"
-source = "git+https://github.com/asterinas/asterinas?rev=2f51106#2f511069eecf521661aa4d8ee3020863be75b543"
+source = "git+https://github.com/asterinas/asterinas?rev=a43b0b6#a43b0b6a529e2ccbef799790694c34a59b82603c"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -320,7 +320,7 @@ checksum = "561d97a539a36e26a9a5fad1ea11a3039a67714694aaa379433e580854bc3dc5"
 [[package]]
 name = "linux-boot-params"
 version = "0.9.3"
-source = "git+https://github.com/asterinas/asterinas?rev=2f51106#2f511069eecf521661aa4d8ee3020863be75b543"
+source = "git+https://github.com/asterinas/asterinas?rev=a43b0b6#a43b0b6a529e2ccbef799790694c34a59b82603c"
 
 [[package]]
 name = "lock_api"
@@ -446,10 +446,10 @@ dependencies = [
 [[package]]
 name = "ostd"
 version = "0.9.3"
-source = "git+https://github.com/asterinas/asterinas?rev=2f51106#2f511069eecf521661aa4d8ee3020863be75b543"
+source = "git+https://github.com/asterinas/asterinas?rev=a43b0b6#a43b0b6a529e2ccbef799790694c34a59b82603c"
 dependencies = [
  "acpi",
- "align_ext 0.1.0 (git+https://github.com/asterinas/asterinas?rev=2f51106)",
+ "align_ext 0.1.0 (git+https://github.com/asterinas/asterinas?rev=a43b0b6)",
  "aml",
  "bit_field",
  "bitflags 1.3.2",
@@ -460,9 +460,9 @@ dependencies = [
  "fdt",
  "gimli 0.28.1",
  "iced-x86",
- "id-alloc 0.1.0 (git+https://github.com/asterinas/asterinas?rev=2f51106)",
+ "id-alloc 0.1.0 (git+https://github.com/asterinas/asterinas?rev=a43b0b6)",
  "inherit-methods-macro",
- "int-to-c-enum 0.1.0 (git+https://github.com/asterinas/asterinas?rev=2f51106)",
+ "int-to-c-enum 0.1.0 (git+https://github.com/asterinas/asterinas?rev=a43b0b6)",
  "intrusive-collections",
  "lazy_static",
  "linux-boot-params",
@@ -490,7 +490,7 @@ dependencies = [
 [[package]]
 name = "ostd-macros"
 version = "0.9.3"
-source = "git+https://github.com/asterinas/asterinas?rev=2f51106#2f511069eecf521661aa4d8ee3020863be75b543"
+source = "git+https://github.com/asterinas/asterinas?rev=a43b0b6#a43b0b6a529e2ccbef799790694c34a59b82603c"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -519,7 +519,7 @@ dependencies = [
 [[package]]
 name = "ostd-test"
 version = "0.9.3"
-source = "git+https://github.com/asterinas/asterinas?rev=2f51106#2f511069eecf521661aa4d8ee3020863be75b543"
+source = "git+https://github.com/asterinas/asterinas?rev=a43b0b6#a43b0b6a529e2ccbef799790694c34a59b82603c"
 
 [[package]]
 name = "owo-colors"

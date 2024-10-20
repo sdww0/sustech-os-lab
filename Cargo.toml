@@ -5,7 +5,7 @@ edition = "2021"
 
 [dependencies.ostd]
 git = "https://github.com/asterinas/asterinas"
-rev = "2f51106"
+rev = "a43b0b6"
 
 [dependencies]
 align_ext= "0.1.0"
