@@ -152,10 +152,12 @@ impl Process {
         let Some(child) = children.get(&pid) else {
             return Err(Error::new(crate::error::Errno::ECHILD));
         };
+
         if child.status.is_zombie() {
             let child = children.remove(&pid).unwrap();
             return Ok(child.status.exit_code());
         }
+
         Err(Error::new(crate::error::Errno::EAGAIN))
     }
 
@@ -164,6 +166,7 @@ impl Process {
         if children.is_empty() {
             return_errno!(Errno::ECHILD);
         }
+
         let mut wait_pid = None;
         for (pid, child) in children.iter() {
             if child.status.is_zombie() {
@@ -171,10 +174,12 @@ impl Process {
                 break;
             }
         }
+
         if let Some(pid) = wait_pid {
             let child = children.remove(&pid).unwrap();
             return Ok((pid, child.status.exit_code()));
         }
+
         Err(Error::new(crate::error::Errno::EAGAIN))
     }
 
@@ -183,11 +188,13 @@ impl Process {
         if self.pid == INIT_PROCESS_ID || self.children.lock().is_empty() {
             return;
         }
+
         // Do re-parenting
-        let mut self_children = self.children.lock();
         let process_table = PROCESS_TABLE.lock();
         let init_process = process_table.get(&INIT_PROCESS_ID).unwrap();
         let mut init_process_children = init_process.children.lock();
+        let mut self_children = self.children.lock();
+
         while let Some((pid, child)) = self_children.pop_first() {
             *child.parent_process.lock() = Arc::downgrade(init_process);
             init_process_children.insert(pid, child);

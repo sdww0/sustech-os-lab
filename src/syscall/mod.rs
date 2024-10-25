@@ -1,12 +1,17 @@
 // SPDX-License-Identifier: MPL-2.0
 
+pub mod clone;
+pub mod exec;
 pub mod mprotect;
 pub mod stat;
+pub mod wait4;
 pub mod write;
 
 use core::str;
 
 use alloc::vec;
+use clone::sys_clone;
+use exec::sys_execve;
 use log::debug;
 use mprotect::sys_mprotect;
 use ostd::{
@@ -16,6 +21,7 @@ use ostd::{
     user::UserSpace,
 };
 use stat::sys_fstat;
+use wait4::sys_wait4;
 use write::sys_writev;
 
 use crate::{
@@ -93,6 +99,16 @@ pub fn handle_syscall(user_context: &mut UserContext, user_space: &UserSpace) {
                 process.heap.brk(val).unwrap() as isize
             ))
         }
+        SYS_CLONE => sys_clone(
+            args[0] as _,
+            args[1] as _,
+            args[2] as _,
+            args[3] as _,
+            args[4] as _,
+            user_context,
+        ),
+        SYS_EXECVE => sys_execve(args[0] as _, args[1] as _, args[2] as _, user_context),
+        SYS_WAIT4 => sys_wait4(args[0] as _, args[1] as _, args[2] as _, args[3] as _),
         SYS_EXIT | SYS_EXIT_GROUP => {
             debug!("Exit from userland program, code: 0x{:x}", args[0]);
             current_process().unwrap().exit(args[0] as u32);
