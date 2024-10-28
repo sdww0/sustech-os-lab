@@ -11,10 +11,6 @@ use ostd::{
 use super::SyscallReturn;
 use crate::{prelude::*, process::current_process};
 
-pub const STDIN: i32 = 0;
-pub const STDOUT: i32 = 1;
-pub const STDERR: i32 = 2;
-
 #[repr(C)]
 #[derive(Debug, Clone, Copy, Pod)]
 pub struct IoVec {

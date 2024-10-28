@@ -7,6 +7,10 @@ mod progs;
 
 pub static USER_PROGS: Once<BTreeMap<&str, &'static [u8]>> = Once::new();
 
+pub const STDIN: usize = 0;
+pub const STDOUT: usize = 1;
+pub const STDERR: usize = 2;
+
 pub fn init() {
     progs::init();
 }

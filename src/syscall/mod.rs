@@ -3,6 +3,7 @@
 pub mod clone;
 pub mod exec;
 pub mod mprotect;
+pub mod read;
 pub mod stat;
 pub mod wait4;
 pub mod write;
@@ -20,6 +21,7 @@ use ostd::{
     mm::{FallibleVmRead, VmWriter},
     user::UserSpace,
 };
+use read::sys_read;
 use stat::sys_fstat;
 use wait4::sys_wait4;
 use write::sys_writev;
@@ -33,6 +35,8 @@ use crate::{
 
 #[allow(dead_code)]
 pub fn handle_syscall(user_context: &mut UserContext, user_space: &UserSpace) {
+    const SYS_LSEEK: usize = 62;
+    const SYS_READ: usize = 63;
     const SYS_WRITE: usize = 64;
     const SYS_READV: usize = 65;
     const SYS_WRITEV: usize = 66;
@@ -70,6 +74,7 @@ pub fn handle_syscall(user_context: &mut UserContext, user_space: &UserSpace) {
     );
 
     let ret: Result<SyscallReturn> = match user_context.a7() {
+        SYS_READ => sys_read(args[0] as _, args[1] as _, args[2] as _),
         SYS_WRITE => {
             let (_, addr, len) = (args[0], args[1], args[2]);
             let mut buf = vec![0u8; len];
@@ -127,6 +132,7 @@ pub fn handle_syscall(user_context: &mut UserContext, user_space: &UserSpace) {
                 .pid() as isize,
         )),
         SYS_NEWFSTAT => sys_fstat(args[0] as _, args[1] as _),
+        SYS_LSEEK => Err(Error::new(Errno::ENOSYS)),
         SYS_HWPROBE => Err(Error::new(Errno::ENOSYS)),
         SYS_PRLIMIT64 => Err(Error::new(Errno::ENOSYS)),
         SYS_READLINKAT => Err(Error::new(Errno::ENOSYS)),

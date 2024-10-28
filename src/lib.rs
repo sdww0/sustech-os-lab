@@ -3,10 +3,13 @@
 #![no_std]
 // The feature `linkage` is required for `ostd::main` to work.
 #![feature(linkage)]
+#![feature(fn_traits)]
+#![feature(ascii_char)]
 
 use ostd::{arch::qemu::exit_qemu, early_println, task::Task};
 use process::Process;
 
+pub mod console;
 pub mod context;
 pub mod error;
 pub mod fs;

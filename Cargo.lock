@@ -745,6 +745,7 @@ dependencies = [
  "log",
  "ostd",
  "riscv",
+ "sbi-rt",
  "spin",
  "xmas-elf",
 ]
