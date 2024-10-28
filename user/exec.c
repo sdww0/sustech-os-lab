@@ -5,6 +5,8 @@ int main(int argc, char *argv[])
     // Disable buffer in STDOUT
     setvbuf(stdout, NULL, _IONBF, 0);
 
+    printf("My PID: %d\n", getpid());
+
     printf("This is before exec\n");
 
     execl("hello_world", "hello_world", "temp", NULL);
