@@ -79,11 +79,8 @@ impl Thread {
                     break;
                 }
             }
-            PROCESS_TABLE
-                .lock()
-                .remove(&current.pid())
-                .unwrap()
-                .reparent_children_to_init();
+            let process = PROCESS_TABLE.lock().remove(&current.pid()).unwrap();
+            process.reparent_children_to_init();
         }
 
         let thread = Arc::new(Self {
