@@ -4,8 +4,8 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies.ostd]
-git = "https://github.com/asterinas/asterinas"
-rev = "a43b0b6"
+git = "https://github.com/sdww0/asterinas"
+branch = "riscv-timer"
 
 [dependencies]
 align_ext = "0.1.0"

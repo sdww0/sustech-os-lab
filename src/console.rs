@@ -25,7 +25,12 @@ where
 
     let read_bytes = ret.value;
 
-    let reader: VmReader<'_, ostd::mm::Fallible> = RECEIVE_BUFFER.get().unwrap().reader().limit(read_bytes).to_fallible();
+    let reader: VmReader<'_, ostd::mm::Fallible> = RECEIVE_BUFFER
+        .get()
+        .unwrap()
+        .reader()
+        .limit(read_bytes)
+        .to_fallible();
 
     callback.call_mut((reader,));
     read_bytes
