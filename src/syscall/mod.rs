@@ -5,6 +5,7 @@ pub mod exec;
 pub mod mprotect;
 pub mod read;
 pub mod stat;
+pub mod time;
 pub mod wait4;
 pub mod write;
 
@@ -23,6 +24,7 @@ use ostd::{
 };
 use read::sys_read;
 use stat::sys_fstat;
+use time::sys_clock_gettime;
 use wait4::sys_wait4;
 use write::sys_writev;
 
@@ -46,6 +48,7 @@ pub fn handle_syscall(user_context: &mut UserContext, user_space: &UserSpace) {
     const SYS_EXIT_GROUP: usize = 94;
     const SYS_SET_TID_ADDRESS: usize = 96;
     const SYS_SET_ROUBST_LIST: usize = 99;
+    const SYS_CLOCK_GETTIME: usize = 113;
     const SYS_GETPID: usize = 172;
     const SYS_GETPPID: usize = 173;
     const SYS_BRK: usize = 214;
@@ -131,6 +134,7 @@ pub fn handle_syscall(user_context: &mut UserContext, user_space: &UserSpace) {
                 .unwrap()
                 .pid() as isize,
         )),
+        SYS_CLOCK_GETTIME => sys_clock_gettime(args[0] as _, args[1] as _),
         SYS_NEWFSTAT => sys_fstat(args[0] as _, args[1] as _),
         SYS_LSEEK => Err(Error::new(Errno::ENOSYS)),
         SYS_HWPROBE => Err(Error::new(Errno::ENOSYS)),
@@ -148,6 +152,8 @@ pub fn handle_syscall(user_context: &mut UserContext, user_space: &UserSpace) {
             // Err(Error::new(Errno::ENOSYS))
         }
     };
+
+    debug!("Syscall returning, ret: {:?}", ret);
 
     match ret {
         Ok(val) => match val {
