@@ -1,14 +1,19 @@
-use alloc::{collections::vec_deque::VecDeque, sync::Arc};
+use alloc::{boxed::Box, collections::vec_deque::VecDeque, sync::Arc};
 use ostd::{
     cpu::CpuId,
     sync::SpinLock,
     task::{
         disable_preempt,
-        scheduler::{EnqueueFlags, LocalRunQueue, Scheduler},
+        scheduler::{inject_scheduler, EnqueueFlags, LocalRunQueue, Scheduler},
         Task,
     },
     trap::disable_local,
 };
+
+pub fn init() {
+    let scheduler = Box::new(RrScheduler::default());
+    inject_scheduler(Box::leak(scheduler));
+}
 
 pub struct RrScheduler {
     run_queue: SpinLock<RrRunQueue>,
