@@ -15,6 +15,7 @@ pub mod error;
 pub mod fs;
 pub mod prelude;
 pub mod process;
+pub mod sched;
 pub mod syscall;
 pub mod thread;
 pub mod time;
@@ -26,6 +27,7 @@ extern crate alloc;
 #[ostd::main]
 pub fn main() {
     fs::init();
+    sched::init();
     let init_thread = Process::new_kernel_process(init_thread, "idle".into());
     init_thread.run();
 }
