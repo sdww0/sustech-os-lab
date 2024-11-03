@@ -1,12 +1,13 @@
+use crate::prelude::*;
 use ostd::mm::{Fallible, Frame, FrameAllocOptions, HasPaddr, VmReader, PAGE_SIZE};
 use sbi_rt::Physical;
 use spin::Once;
 
 static RECEIVE_BUFFER: Once<Frame> = Once::new();
 
-pub fn receive_str<F>(mut callback: F) -> usize
+pub fn receive_str<F>(mut callback: F) -> Result<usize>
 where
-    F: FnMut(VmReader<Fallible>),
+    F: FnMut(VmReader<Fallible>) -> Result<()>,
 {
     if !RECEIVE_BUFFER.is_completed() {
         RECEIVE_BUFFER.call_once(|| FrameAllocOptions::new(1).alloc().unwrap().pop().unwrap());
@@ -20,7 +21,8 @@ where
     ));
 
     if ret.is_err() {
-        return 0;
+        // FIXME: Well, we should check the error code.
+        return Err(Error::new(Errno::ENODATA));
     }
 
     let read_bytes = ret.value;
@@ -32,6 +34,6 @@ where
         .limit(read_bytes)
         .to_fallible();
 
-    callback.call_mut((reader,));
-    read_bytes
+    callback.call_mut((reader,))?;
+    Ok(read_bytes)
 }

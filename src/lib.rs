@@ -33,7 +33,7 @@ pub fn main() {
 }
 
 fn init_thread() {
-    const INIT_PROCESS_NAME: &str = "hello_world";
+    const INIT_PROCESS_NAME: &str = "shell";
 
     early_println!("User programs: {:?}", fs::USER_PROGS.get().unwrap().keys());
     let program_binary = fs::USER_PROGS

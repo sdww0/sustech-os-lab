@@ -4,6 +4,7 @@ use spin::Once;
 use crate::prelude::*;
 
 mod progs;
+pub mod stdin;
 
 pub static USER_PROGS: Once<BTreeMap<&str, &'static [u8]>> = Once::new();
 
