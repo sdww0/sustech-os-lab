@@ -41,9 +41,11 @@ impl UserHeap {
 
                 if new_vaddr > old_vaddr {
                     let pages = (new_vaddr - old_vaddr) / PAGE_SIZE;
-                    process
-                        .memory_space
-                        .map(VmMapping::new(old_vaddr, pages, PageFlags::RW));
+                    process.memory_space.add_vm_mapping(VmMapping::new(
+                        old_vaddr,
+                        pages,
+                        PageFlags::RW,
+                    ));
                 }
                 self.current_end.store(new_end, Ordering::Release);
                 Some(new_end)

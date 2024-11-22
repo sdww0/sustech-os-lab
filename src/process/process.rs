@@ -313,8 +313,8 @@ fn parse_elf(input: &[u8], memory_space: &MemorySpace, user_cpu_state: &mut User
                 let end_addr = (raw_end_addr as usize).align_up(PAGE_SIZE);
 
                 debug!(
-                    "Mapping elf, raw_start_addr: {:x?}, raw_end_addr: {:x?}, mem_size: {:x?}, file_size: {:x?}",
-                    raw_start_addr, raw_end_addr,ph64.mem_size,ph64.file_size
+                    "Mapping elf, raw_start_addr: {:x?}, raw_end_addr: {:x?}, mem_size: {:x?}, file_size: {:x?}, flags: {:x?}",
+                    raw_start_addr, raw_end_addr, ph64.mem_size, ph64.file_size, ph64.flags
                 );
 
                 let mut perms = PageFlags::empty();

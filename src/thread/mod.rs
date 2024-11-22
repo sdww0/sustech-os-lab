@@ -10,9 +10,11 @@ use ostd::cpu::UserContext;
 
 use ostd::prelude::*;
 use ostd::user::{ReturnReason, UserContextApi, UserMode, UserSpace};
+use riscv::register::scause::Exception;
 use spin::Once;
 
 use crate::process::{current_process, Process, PROCESS_TABLE};
+use crate::vm::mapping::handle_page_fault;
 
 pub type Tid = u32;
 
@@ -143,11 +145,21 @@ pub fn alloc_tid() -> u32 {
 }
 
 fn handle_exception(user_context: &mut UserContext, _user_space: &UserSpace) {
-    println!(
-        "Catch CPU exception, skip this instruction. CPU exception: {:?} instruction addr: {:x?}, fault addr:{:x?}",
-        user_context.trap_information().cpu_exception(),
-        user_context.instruction_pointer(),
-        user_context.trap_information().page_fault_addr,
-    );
-    user_context.set_instruction_pointer(user_context.instruction_pointer() + 2);
+    match user_context.trap_information().cpu_exception() {
+        Exception::StorePageFault | Exception::LoadPageFault | Exception::InstructionPageFault => {
+            handle_page_fault(
+                user_context,
+                user_context.trap_information().page_fault_addr,
+            );
+        }
+        _ => {
+            println!(
+            "Catch CPU exception, skip this instruction. CPU exception: {:?} instruction addr: {:x?}, fault addr:{:x?}",
+            user_context.trap_information().cpu_exception(),
+            user_context.instruction_pointer(),
+            user_context.trap_information().page_fault_addr,
+        );
+            user_context.set_instruction_pointer(user_context.instruction_pointer() + 2);
+        }
+    }
 }
