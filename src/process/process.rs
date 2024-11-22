@@ -368,5 +368,5 @@ fn parse_elf(input: &[u8], memory_space: &MemorySpace, user_cpu_state: &mut User
     user_cpu_state.set_instruction_pointer(header.pt2.entry_point() as usize);
 
     // Third, map the 0 address
-    memory_space.map(VmMapping::new(0, 1, PageFlags::RW));
+    memory_space.map(VmMapping::new(0, 1, PageFlags::R));
 }
