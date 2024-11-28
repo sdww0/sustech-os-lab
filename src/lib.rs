@@ -11,6 +11,7 @@ use process::Process;
 
 pub mod console;
 pub mod context;
+pub mod driver;
 pub mod error;
 pub mod fs;
 pub mod prelude;
@@ -26,6 +27,7 @@ extern crate alloc;
 
 #[ostd::main]
 pub fn main() {
+    driver::init();
     fs::init();
     sched::fifo::init();
     let init_thread = Process::new_kernel_process(init_thread, "idle".into());

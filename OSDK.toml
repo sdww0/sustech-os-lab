@@ -35,4 +35,6 @@ qemu.args = """\
     -serial chardev:mux \
     -monitor chardev:mux \
     -chardev stdio,id=mux,mux=on,signal=off,logfile=qemu.log \
+    -device ivshmem-plain,memdev=shmem0,id=shmem1 \
+    -object memory-backend-file,id=shmem0,share=on,mem-path=/dev/shm/shm_qemu_riscv,prealloc=yes,size=4k \
 """

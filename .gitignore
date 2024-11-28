@@ -4,3 +4,5 @@ qemu.log
 
 # Auto generate file
 src/fs/progs.rs
+
+a.out
