@@ -19,4 +19,4 @@ rm -rf qemu qemu.tar.xz
 # Install OSDK
 sudo apt-get install -y --no-install-recommends mtools
 
-cargo install cargo-osdk --version 0.16.0
+cargo install cargo-osdk --version 0.16.1
