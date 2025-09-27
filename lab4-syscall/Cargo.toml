@@ -1,0 +1,16 @@
+[package]
+name = "lab4-syscall"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies.ostd]
+version = "0.16.1"
+
+[dependencies]
+align_ext = "0.1.0"
+spin = "0.9.4"
+log = "0.4"
+riscv = { version = "0.11.1", features = ["s-mode"] }
+
+[workspace]
+exclude = ["target/osdk/base", "target/osdk/test-base"]
