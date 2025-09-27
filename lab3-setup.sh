@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 sudo apt-get install -y --no-install-recommends libusb-dev libglib2.0-dev libpixman-1-dev meson ninja-build libgcrypt-dev libslirp-dev libevent-dev ovmf
 pip3 install yq tomli
 
