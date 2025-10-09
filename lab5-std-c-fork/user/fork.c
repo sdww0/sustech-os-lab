@@ -3,8 +3,9 @@
 
 int main()
 {
-    printf("Hello Fork!, parent pid: %d\n", getpid());
-
+    printf("Hello Fork!, my pid: %d\n", getpid());
+    fflush(stdout);
+    
     if (fork() == 0)
     {
         // Child process
