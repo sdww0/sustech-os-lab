@@ -22,7 +22,6 @@ pub fn sys_prlimit64(
     old_limit: Vaddr,
     current_process: &Arc<Process>,
 ) -> Result<SyscallReturn> {
-    // We only support RLIMIT_STACK for now (current process only)
     if pid != 0 {
         return Err(Error::new(Errno::EINVAL));
     }
@@ -33,6 +32,7 @@ pub fn sys_prlimit64(
     );
 
     // TODO-1: Change the value according to the <https://man7.org/linux/man-pages/man2/getrlimit.2.html>
+    // We only support RLIMIT_STACK for now (current process only)
     let value: usize = 0;
     let rlim = RLimit64 {
         cur: value as u64,
