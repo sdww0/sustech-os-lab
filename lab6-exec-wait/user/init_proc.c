@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <sys/reboot.h>
 #include <stdio.h>
 
 int main()
@@ -21,10 +22,15 @@ int main()
     // Do waiting to recycle all of the child process
     while (1)
     {
-        int pid = wait(NULL);
-        if (pid > 0)
+        int child_pid = wait(NULL);
+        if (child_pid > 0)
         {
-            printf("[INIT] Catch child process, pid: %d\n", pid);
+            printf("[INIT] Catch child process, pid: %d\n", child_pid);
+        }
+        if (child_pid == pid)
+        {
+            printf("[INIT] Shell process exited, exiting system...\n");
+            reboot(RB_POWER_OFF);
         }
     }
 
