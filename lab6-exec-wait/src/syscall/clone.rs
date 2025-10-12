@@ -21,12 +21,6 @@ pub fn sys_clone(
         clone_flags, child_stack, parent_tidptr, tls, child_tidptr
     );
 
-    // TODO-2: Implement clone syscall
-    // First, we need to duplicate the current process's memory space and registers.
-    // Then, we need to create the child process structure with the duplicated memory space and registers.
-    // Next, we need to set the return value of the child process to 0, and setup the process tree.
-    // Finally, we run the child process and return its PID to the parent process.
-
     let child_process = current_process.fork(&user_context);
 
     child_process.run();

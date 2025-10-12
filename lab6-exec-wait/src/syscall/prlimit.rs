@@ -3,7 +3,7 @@ use log::debug;
 use ostd::{Pod, mm::Vaddr};
 
 use crate::error::{Errno, Error, Result};
-use crate::process::Process;
+use crate::process::{Process, USER_STACK_SIZE};
 use crate::syscall::SyscallReturn;
 
 const RLIM_INFINITY: u64 = u64::MAX;
@@ -31,9 +31,7 @@ pub fn sys_prlimit64(
         pid, resource, _new_limit, old_limit
     );
 
-    // TODO-1: Change the value according to the <https://man7.org/linux/man-pages/man2/getrlimit.2.html>
-    // We only support RLIMIT_STACK for now (current process only)
-    let value: usize = 0;
+    let value: usize = USER_STACK_SIZE;
     let rlim = RLimit64 {
         cur: value as u64,
         max: RLIM_INFINITY,
