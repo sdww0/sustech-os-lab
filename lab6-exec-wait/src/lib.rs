@@ -1,6 +1,9 @@
 #![no_std]
 #![deny(unsafe_code)]
+#![feature(fn_traits)]
+#![feature(ascii_char)]
 
+pub mod console;
 mod error;
 mod logger;
 mod mm;
@@ -14,6 +17,6 @@ extern crate alloc;
 pub fn main() {
     logger::init();
     progs::init();
-    let process = process::Process::new(progs::lookup_progs("fork").unwrap());
+    let process = process::Process::new(progs::lookup_progs("init_proc").unwrap());
     process.run();
 }

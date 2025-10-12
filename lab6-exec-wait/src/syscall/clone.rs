@@ -27,5 +27,9 @@ pub fn sys_clone(
     // Next, we need to set the return value of the child process to 0, and setup the process tree.
     // Finally, we run the child process and return its PID to the parent process.
 
-    Ok(SyscallReturn(0 as _))
+    let child_process = current_process.fork(&user_context);
+
+    child_process.run();
+
+    Ok(SyscallReturn(child_process.pid() as _))
 }

@@ -12,5 +12,5 @@ int main(int argc, char *argv[])
     execl("hello_world", "hello_world", "temp", NULL);
 
     printf("This is after exec\n");
-    return 0;
+    return 1;
 }

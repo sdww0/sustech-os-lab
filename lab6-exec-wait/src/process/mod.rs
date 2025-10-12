@@ -7,20 +7,23 @@ use core::sync::atomic::{AtomicUsize, Ordering};
 use alloc::boxed::Box;
 use alloc::collections::btree_map::BTreeMap;
 use alloc::sync::{Arc, Weak};
-use log::info;
+use log::{debug, info};
 use ostd::arch::cpu::context::UserContext;
 use ostd::arch::qemu::{QemuExitCode, exit_qemu};
 use ostd::early_println;
-use ostd::sync::Mutex;
+use ostd::sync::{Mutex, WaitQueue};
 use ostd::task::{Task, TaskOptions};
 use ostd::user::{ReturnReason, UserContextApi, UserMode};
 use riscv::register::scause::Exception;
 use spin::Once;
 
+use crate::error::{Errno, Error, Result};
 use crate::mm::MemorySpace;
 use crate::process::heap::UserHeap;
 use crate::process::status::ProcessStatus;
 pub const USER_STACK_SIZE: usize = 8192 * 1024; // 8MB
+
+static PROCESS_TABLE: Mutex<BTreeMap<Pid, Arc<Process>>> = Mutex::new(BTreeMap::new());
 
 #[inline]
 pub fn current_process() -> Arc<Process> {
@@ -51,6 +54,8 @@ pub struct Process {
     parent_process: Mutex<Weak<Process>>,
     /// Children process.
     children: Mutex<BTreeMap<Pid, Arc<Process>>>,
+    /// The WaitQueue for a child process to become a zombie.
+    wait_children_queue: WaitQueue,
 }
 
 impl Process {
@@ -65,13 +70,83 @@ impl Process {
             heap: UserHeap::new(),
             parent_process: Mutex::new(Weak::new()),
             children: Mutex::new(BTreeMap::new()),
+            wait_children_queue: WaitQueue::new(),
         });
 
         let task = create_user_task(&process, Box::new(user_context));
         process.task.call_once(|| task);
         process.status.set_runnable();
+        PROCESS_TABLE.lock().insert(process.pid(), process.clone());
 
         process
+    }
+
+    pub fn fork(self: &Arc<Self>, user_context: &UserContext) -> Arc<Process> {
+        let memory_space = self.memory_space.duplicate();
+
+        let user_context = {
+            let mut ctx = user_context.clone();
+            ctx.set_a0(0);
+            ctx
+        };
+
+        let child_process = Arc::new(Process {
+            pid: alloc_pid(),
+            status: ProcessStatus::new(),
+            task: Once::new(),
+            memory_space,
+            heap: UserHeap::new(),
+            parent_process: Mutex::new(Arc::downgrade(self)),
+            children: Mutex::new(BTreeMap::new()),
+            wait_children_queue: WaitQueue::new(),
+        });
+
+        let task = create_user_task(&child_process, Box::new(user_context));
+        child_process.task.call_once(|| task);
+        child_process.status.set_runnable();
+
+        self.children
+            .lock()
+            .insert(child_process.pid(), child_process.clone());
+        PROCESS_TABLE
+            .lock()
+            .insert(child_process.pid(), child_process.clone());
+
+        child_process
+    }
+
+    pub fn exec(&self, binary: &[u8]) -> UserContext {
+        self.memory_space.clear();
+        elf::load_user_space(binary, &self.memory_space)
+    }
+
+    pub fn wait(&self, wait_pid: i32) -> Result<(Pid, u32)> {
+        let wait_pid = if wait_pid == -1 {
+            None
+        } else {
+            Some(wait_pid.abs() as Pid)
+        };
+
+        let res = self.try_wait(wait_pid);
+
+        match res {
+            Ok((pid, exit_code)) => return Ok((pid as Pid, exit_code)),
+            Err(err) if err.code == Errno::EAGAIN => {}
+            Err(err) => return Err(err),
+        }
+
+        // No child exit, waiting...
+        let wait_queue = &self.wait_children_queue;
+        Ok(wait_queue.wait_until(|| self.try_wait(wait_pid).ok()))
+    }
+
+    pub fn reparent_children_to_init(&self) {
+        const INIT_PROCESS_ID: Pid = 1;
+        if self.pid == INIT_PROCESS_ID || self.children.lock().is_empty() {
+            return;
+        }
+
+        // Do re-parenting
     }
 
     pub fn parent_process(&self) -> Option<Arc<Process>> {
@@ -80,6 +155,11 @@ impl Process {
 
     pub fn exit(&self, exit_code: u32) {
         self.status.exit(exit_code);
+        self.reparent_children_to_init();
+        // Wakeup the parent process if it is waiting.
+        if let Some(parent) = self.parent_process() {
+            parent.wait_children_queue.wake_all();
+        }
     }
 
     pub fn is_zombie(&self) -> bool {
@@ -104,6 +184,46 @@ impl Process {
 
     pub fn heap(&self) -> &UserHeap {
         &self.heap
+    }
+
+    fn try_wait(&self, pid: Option<Pid>) -> Result<(Pid, u32)> {
+        let mut children = self.children.lock();
+        if children.is_empty() {
+            return Err(Error::new(Errno::ECHILD));
+        }
+
+        let mut wait_pid = None;
+        if let Some(pid) = pid {
+            if let Some(child) = children.get(&pid) {
+                if child.status.is_zombie() {
+                    wait_pid = Some(pid);
+                }
+            } else {
+                return Err(Error::new(Errno::ECHILD));
+            }
+        } else {
+            for (child_pid, child) in children.iter() {
+                debug!(
+                    "try_wait: check child pid = {}, is zombie = {:?}",
+                    child_pid,
+                    child.status.is_zombie()
+                );
+                if child.status.is_zombie() {
+                    wait_pid = Some(*child_pid);
+                    break;
+                }
+            }
+        }
+
+        debug!("try_wait: wait_pid = {:?}", wait_pid);
+
+        if let Some(pid) = wait_pid {
+            let child = children.remove(&pid).unwrap();
+            PROCESS_TABLE.lock().remove(&pid);
+            return Ok((pid, child.status.exit_code().unwrap()));
+        }
+
+        Err(Error::new(crate::error::Errno::EAGAIN))
     }
 }
 

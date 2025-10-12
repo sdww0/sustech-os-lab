@@ -239,6 +239,7 @@ dependencies = [
  "ostd",
  "owo-colors",
  "riscv",
+ "sbi-rt",
  "spin",
  "xmas-elf",
 ]

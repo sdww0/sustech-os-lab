@@ -11,6 +11,12 @@ use crate::{
     process::USER_STACK_SIZE,
 };
 
+pub fn load_user_space(program: &[u8], memory_space: &MemorySpace) -> UserContext {
+    let mut user_context = UserContext::default();
+    parse_elf(program, &memory_space, &mut user_context);
+    user_context
+}
+
 pub fn create_user_space(program: &[u8]) -> (MemorySpace, UserContext) {
     let memory_space = MemorySpace::new();
     let mut user_context = UserContext::default();
