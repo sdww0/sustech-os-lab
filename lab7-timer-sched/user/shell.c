@@ -9,6 +9,27 @@
 
 int execute(char *command)
 {
+    if (strcmp(command, "exit") == 0)
+    {
+        exit(0);
+    }
+
+    pid_t pid = fork();
+    if (pid < 0)
+    {
+        perror("Fork failed");
+        return -1;
+    }
+    else if (pid == 0)
+    {
+        execl(command, NULL);
+        exit(EXIT_FAILURE);
+    }
+    else
+    {
+        int status;
+        waitpid(pid, &status, 0);
+    }
     return 0;
 }
 

@@ -147,6 +147,17 @@ impl Process {
         }
 
         // Do re-parenting
+        let init_process = {
+            let process_table = PROCESS_TABLE.lock();
+            process_table.get(&INIT_PROCESS_ID).unwrap().clone()
+        };
+
+        let mut init_children = init_process.children.lock();
+        let mut self_children = self.children.lock();
+        while let Some((pid, child)) = self_children.pop_first() {
+            *child.parent_process.lock() = Arc::downgrade(&init_process);
+            init_children.insert(pid, child);
+        }
     }
 
     pub fn parent_process(&self) -> Option<Arc<Process>> {

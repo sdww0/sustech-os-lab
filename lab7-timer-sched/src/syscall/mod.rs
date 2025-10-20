@@ -11,6 +11,7 @@ mod write;
 use alloc::sync::Arc;
 use log::{debug, info};
 use ostd::arch::cpu::context::UserContext;
+use ostd::arch::qemu::exit_qemu;
 use ostd::task::Task;
 
 use crate::error::{Errno, Error, Result};
@@ -34,6 +35,7 @@ pub fn handle_syscall(user_context: &mut UserContext, current_process: &Arc<Proc
     const SYS_EXIT: usize = 93;
 
     const SYS_SCHED_YIELD: usize = 124;
+    const SYS_REBOOT: usize = 142;
     const SYS_NEWUNAME: usize = 160;
     const SYS_GETPID: usize = 172;
     const SYS_GETPPID: usize = 173;
@@ -104,6 +106,7 @@ pub fn handle_syscall(user_context: &mut UserContext, current_process: &Arc<Proc
             args[3] as _,
             current_process,
         ),
+        SYS_REBOOT => exit_qemu(ostd::arch::qemu::QemuExitCode::Success),
         SYS_READ => sys_read(args[0] as _, args[1] as _, args[2] as _, current_process),
         SYS_SCHED_YIELD => {
             Task::yield_now();

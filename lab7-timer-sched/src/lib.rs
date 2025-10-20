@@ -17,6 +17,6 @@ extern crate alloc;
 pub fn main() {
     logger::init();
     progs::init();
-    let process = process::Process::new(progs::lookup_progs("exec").unwrap());
+    let process = process::Process::new(progs::lookup_progs("init_proc").unwrap());
     process.run();
 }
