@@ -9,7 +9,7 @@ use alloc::collections::btree_map::BTreeMap;
 use alloc::sync::{Arc, Weak};
 use log::{debug, info};
 use ostd::arch::cpu::context::UserContext;
-use ostd::arch::qemu::{QemuExitCode, exit_qemu};
+use ostd::arch::qemu::{exit_qemu, QemuExitCode};
 use ostd::early_println;
 use ostd::sync::{Mutex, WaitQueue};
 use ostd::task::{Task, TaskOptions};
@@ -247,7 +247,7 @@ fn create_user_task(process: &Arc<Process>, user_context: Box<UserContext>) -> A
 
         loop {
             vm_space.activate();
-            let return_reason = user_mode.execute(|| false);
+            let return_reason = user_mode.execute(|| true);
             let user_context = user_mode.context_mut();
             match return_reason {
                 ReturnReason::UserException => {
@@ -270,7 +270,9 @@ fn create_user_task(process: &Arc<Process>, user_context: Box<UserContext>) -> A
                 ReturnReason::UserSyscall => {
                     crate::syscall::handle_syscall(user_context, &process);
                 }
-                ReturnReason::KernelEvent => unreachable!(),
+                ReturnReason::KernelEvent => {
+                    ostd::task::halt_cpu();
+                }
             }
             if let Some(exit_code) = process.exit_code() {
                 info!("Process {} exited with code {}", process.pid(), exit_code);
