@@ -10,6 +10,8 @@ const READ_STDIN: &[u8] =
     include_bytes_aligned::include_bytes_aligned!(32, "../../target/user_prog/read_stdin");
 const REPARENT: &[u8] =
     include_bytes_aligned::include_bytes_aligned!(32, "../../target/user_prog/reparent");
+const RR_TEST: &[u8] =
+    include_bytes_aligned::include_bytes_aligned!(32, "../../target/user_prog/rr_test");
 const SHELL: &[u8] =
     include_bytes_aligned::include_bytes_aligned!(32, "../../target/user_prog/shell");
 const WAIT: &[u8] =
@@ -24,6 +26,7 @@ pub fn init() {
         user_progs.insert("init_proc", INIT_PROC);
         user_progs.insert("read_stdin", READ_STDIN);
         user_progs.insert("reparent", REPARENT);
+        user_progs.insert("rr_test", RR_TEST);
         user_progs.insert("shell", SHELL);
         user_progs.insert("wait", WAIT);
         user_progs
