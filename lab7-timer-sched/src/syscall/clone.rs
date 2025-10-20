@@ -1,0 +1,29 @@
+use alloc::sync::Arc;
+use log::debug;
+use ostd::arch::cpu::context::UserContext;
+use ostd::mm::Vaddr;
+
+use crate::error::Result;
+use crate::process::Process;
+use crate::syscall::SyscallReturn;
+
+pub fn sys_clone(
+    clone_flags: u64,
+    child_stack: u64,
+    parent_tidptr: Vaddr,
+    tls: u64,
+    child_tidptr: Vaddr,
+    current_process: &Arc<Process>,
+    user_context: &mut UserContext,
+) -> Result<SyscallReturn> {
+    debug!(
+        "[SYS_CLONE] clone_flags: {:#x}, child_stack: {:#x}, parent_tidptr: {:#x}, tls: {:#x}, child_tidptr: {:#x}",
+        clone_flags, child_stack, parent_tidptr, tls, child_tidptr
+    );
+
+    let child_process = current_process.fork(&user_context);
+
+    child_process.run();
+
+    Ok(SyscallReturn(child_process.pid() as _))
+}
