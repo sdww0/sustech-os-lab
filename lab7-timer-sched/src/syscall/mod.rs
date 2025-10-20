@@ -4,6 +4,7 @@ mod exec;
 mod exit;
 mod prlimit;
 mod read;
+mod time;
 mod uname;
 mod wait4;
 mod write;
@@ -22,6 +23,7 @@ use crate::syscall::exec::sys_execve;
 use crate::syscall::exit::sys_exit;
 use crate::syscall::prlimit::sys_prlimit64;
 use crate::syscall::read::sys_read;
+use crate::syscall::time::sys_clock_gettime;
 use crate::syscall::uname::sys_uname;
 use crate::syscall::wait4::sys_wait4;
 use crate::syscall::write::{sys_write, sys_writev};
@@ -34,6 +36,7 @@ pub fn handle_syscall(user_context: &mut UserContext, current_process: &Arc<Proc
     const SYS_WRITEV: usize = 66;
     const SYS_EXIT: usize = 93;
 
+    const SYS_CLOCK_GETTIME: usize = 113;
     const SYS_SCHED_YIELD: usize = 124;
     const SYS_REBOOT: usize = 142;
     const SYS_NEWUNAME: usize = 160;
@@ -106,6 +109,7 @@ pub fn handle_syscall(user_context: &mut UserContext, current_process: &Arc<Proc
             args[3] as _,
             current_process,
         ),
+        SYS_CLOCK_GETTIME => sys_clock_gettime(args[0] as _, args[1] as _, current_process),
         SYS_REBOOT => exit_qemu(ostd::arch::qemu::QemuExitCode::Success),
         SYS_READ => sys_read(args[0] as _, args[1] as _, args[2] as _, current_process),
         SYS_SCHED_YIELD => {
