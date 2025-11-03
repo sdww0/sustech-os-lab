@@ -7,7 +7,11 @@ use ostd::{
     mm::{FallibleVmRead, Vaddr, VmWriter},
 };
 
-use crate::{error::Result, process::Process, syscall::SyscallReturn};
+use crate::{
+    error::{Errno, Error, Result},
+    process::Process,
+    syscall::SyscallReturn,
+};
 
 #[repr(C)]
 #[derive(Debug, Clone, Copy, Pod)]
@@ -68,16 +72,15 @@ pub fn sys_write(
         fd, buf, count
     );
 
-    let mut buffer = vec![0u8; count];
-    current_process
+    let reader = current_process
         .memory_space()
         .vm_space()
         .reader(buf, count)
-        .unwrap()
-        .read_fallible(&mut VmWriter::from(&mut buffer as &mut [u8]))
         .unwrap();
 
-    early_print!("{}", str::from_utf8(&buffer).unwrap());
+    let file_table = current_process.file_table();
+    let file = file_table.get(fd).ok_or(Error::new(Errno::EBADF))?;
+    let write_len = file.file().write(reader)?;
 
-    Ok(SyscallReturn(count as _))
+    Ok(SyscallReturn(write_len as _))
 }

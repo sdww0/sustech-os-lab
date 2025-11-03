@@ -5,6 +5,7 @@
 
 pub mod console;
 mod error;
+mod fs;
 mod logger;
 mod mm;
 pub mod process;

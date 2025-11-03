@@ -227,7 +227,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "lab9-vfs-fd-ipc"
+name = "lab9-fd-vfs-ipc"
 version = "0.1.0"
 dependencies = [
  "align_ext",

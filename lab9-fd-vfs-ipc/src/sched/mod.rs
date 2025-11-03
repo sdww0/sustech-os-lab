@@ -18,4 +18,3 @@ pub fn init() {
     }
     ostd::task::scheduler::enable_preemption_on_cpu();
 }
-

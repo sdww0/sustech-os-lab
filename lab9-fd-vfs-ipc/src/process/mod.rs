@@ -9,15 +9,16 @@ use alloc::collections::btree_map::BTreeMap;
 use alloc::sync::{Arc, Weak};
 use log::{debug, info};
 use ostd::arch::cpu::context::UserContext;
-use ostd::arch::qemu::{exit_qemu, QemuExitCode};
+use ostd::arch::qemu::{QemuExitCode, exit_qemu};
 use ostd::early_println;
-use ostd::sync::{Mutex, WaitQueue};
+use ostd::sync::{Mutex, MutexGuard, WaitQueue};
 use ostd::task::{Task, TaskOptions};
 use ostd::user::{ReturnReason, UserContextApi, UserMode};
 use riscv::register::scause::Exception;
 use spin::Once;
 
 use crate::error::{Errno, Error, Result};
+use crate::fs::file_table::FileTable;
 use crate::mm::MemorySpace;
 use crate::process::heap::UserHeap;
 use crate::process::status::ProcessStatus;
@@ -43,6 +44,8 @@ pub struct Process {
     status: ProcessStatus,
     /// The thread of this process
     task: Once<Arc<Task>>,
+    /// File table
+    file_table: Arc<Mutex<FileTable>>,
 
     // ======================== Memory management ===============================
     memory_space: MemorySpace,
@@ -71,6 +74,7 @@ impl Process {
             parent_process: Mutex::new(Weak::new()),
             children: Mutex::new(BTreeMap::new()),
             wait_children_queue: WaitQueue::new(),
+            file_table: Arc::new(Mutex::new(FileTable::new_with_standard_io())),
         });
 
         let task = create_user_task(&process, Box::new(user_context));
@@ -99,6 +103,7 @@ impl Process {
             parent_process: Mutex::new(Arc::downgrade(self)),
             children: Mutex::new(BTreeMap::new()),
             wait_children_queue: WaitQueue::new(),
+            file_table: Arc::new(Mutex::new(FileTable::new_with_standard_io())),
         });
 
         let task = create_user_task(&child_process, Box::new(user_context));
@@ -171,6 +176,10 @@ impl Process {
         if let Some(parent) = self.parent_process() {
             parent.wait_children_queue.wake_all();
         }
+    }
+
+    pub fn file_table(&self) -> MutexGuard<FileTable> {
+        self.file_table.lock()
     }
 
     pub fn is_zombie(&self) -> bool {
