@@ -45,7 +45,7 @@ pub struct Process {
     /// The thread of this process
     task: Once<Arc<Task>>,
     /// File table
-    file_table: Arc<Mutex<FileTable>>,
+    file_table: Mutex<FileTable>,
 
     // ======================== Memory management ===============================
     memory_space: MemorySpace,
@@ -74,7 +74,7 @@ impl Process {
             parent_process: Mutex::new(Weak::new()),
             children: Mutex::new(BTreeMap::new()),
             wait_children_queue: WaitQueue::new(),
-            file_table: Arc::new(Mutex::new(FileTable::new_with_standard_io())),
+            file_table: Mutex::new(FileTable::new_with_standard_io()),
         });
 
         let task = create_user_task(&process, Box::new(user_context));
@@ -103,7 +103,7 @@ impl Process {
             parent_process: Mutex::new(Arc::downgrade(self)),
             children: Mutex::new(BTreeMap::new()),
             wait_children_queue: WaitQueue::new(),
-            file_table: Arc::new(Mutex::new(FileTable::new_with_standard_io())),
+            file_table: Mutex::new(self.file_table().duplicate()),
         });
 
         let task = create_user_task(&child_process, Box::new(user_context));

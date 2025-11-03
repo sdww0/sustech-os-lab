@@ -2,6 +2,7 @@ mod brk;
 mod clone;
 mod exec;
 mod exit;
+mod pipe;
 mod prlimit;
 mod read;
 mod time;
@@ -21,6 +22,7 @@ use crate::syscall::brk::sys_brk;
 use crate::syscall::clone::sys_clone;
 use crate::syscall::exec::sys_execve;
 use crate::syscall::exit::sys_exit;
+use crate::syscall::pipe::sys_pipe2;
 use crate::syscall::prlimit::sys_prlimit64;
 use crate::syscall::read::sys_read;
 use crate::syscall::time::sys_clock_gettime;
@@ -31,6 +33,8 @@ use crate::syscall::write::{sys_write, sys_writev};
 pub struct SyscallReturn(pub isize);
 
 pub fn handle_syscall(user_context: &mut UserContext, current_process: &Arc<Process>) {
+    const SYS_PIPE2: usize = 59;
+
     const SYS_READ: usize = 63;
     const SYS_WRITE: usize = 64;
     const SYS_WRITEV: usize = 66;
@@ -67,6 +71,8 @@ pub fn handle_syscall(user_context: &mut UserContext, current_process: &Arc<Proc
     );
 
     let ret: Result<SyscallReturn> = match user_context.a7() {
+        SYS_PIPE2 => sys_pipe2(args[0] as _, args[1] as _, current_process),
+
         SYS_WRITEV => sys_writev(args[0] as _, args[1] as _, args[2] as _, current_process),
         SYS_NEWUNAME => sys_uname(args[0] as _, current_process),
         SYS_BRK => sys_brk(args[0] as _, current_process),

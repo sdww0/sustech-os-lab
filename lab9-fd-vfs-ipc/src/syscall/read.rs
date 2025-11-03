@@ -20,10 +20,6 @@ pub fn sys_read(
         fd, user_buf_addr, buf_len
     );
 
-    if fd != 0 as i32 || buf_len == 0 {
-        return Err(Error::new(Errno::ENOSYS));
-    }
-
     let writer = current_process
         .memory_space()
         .vm_space()

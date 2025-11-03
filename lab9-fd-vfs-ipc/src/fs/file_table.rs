@@ -34,6 +34,27 @@ impl FileTable {
         }
     }
 
+    pub fn len(&self) -> usize {
+        self.fds_in_use
+    }
+
+    pub fn duplicate(&self) -> Self {
+        let mut new_table = Vec::new();
+        for entry in &self.table {
+            if let Some(e) = entry {
+                new_table.push(Some(FileEntry {
+                    file: e.file.clone(),
+                }));
+            } else {
+                new_table.push(None);
+            }
+        }
+        FileTable {
+            table: new_table,
+            fds_in_use: self.fds_in_use,
+        }
+    }
+
     pub fn new_with_standard_io() -> Self {
         let mut table = Vec::new();
         table.push(Some(FileEntry {
@@ -54,7 +75,7 @@ impl FileTable {
     pub fn insert(&mut self, entry: FileEntry) -> FileDescriptor {
         let fd = if self.fds_in_use == self.table.len() {
             self.table.push(Some(entry));
-            (self.fds_in_use - 1) as FileDescriptor
+            self.fds_in_use as FileDescriptor
         } else {
             let index = self.table.iter().position(|e| e.is_none()).unwrap();
             self.table[index] = Some(entry);
