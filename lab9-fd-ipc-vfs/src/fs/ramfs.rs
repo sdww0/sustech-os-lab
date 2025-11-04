@@ -15,11 +15,11 @@ pub struct RamInode {
 impl Inode for RamInode {
     fn read_at(&self, offset: usize, mut writer: ostd::mm::VmWriter) -> Result<usize> {
         let data = self.data.lock();
-        if offset >= self.data.lock().len() {
+        if offset >= data.len() {
             return Ok(0);
         }
 
-        let read_len = core::cmp::min(self.data.lock().len() - offset, writer.avail());
+        let read_len = core::cmp::min(data.len() - offset, writer.avail());
         writer
             .write_fallible(&mut VmReader::from(
                 &(*data.as_slice())[offset..offset + read_len],
