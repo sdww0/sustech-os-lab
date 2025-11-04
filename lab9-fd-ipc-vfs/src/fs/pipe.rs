@@ -1,9 +1,7 @@
 use crate::error::{Errno, Error, Result};
 use crate::fs::FileLike;
 use alloc::sync::Arc;
-use log::info;
 use ostd::mm::{FrameAllocOptions, PAGE_SIZE, Segment, VmIo, VmReader, VmWriter};
-use ostd::task::Task;
 use spin::Mutex;
 
 pub struct PipeReader {
