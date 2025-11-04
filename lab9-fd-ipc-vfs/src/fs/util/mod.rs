@@ -20,8 +20,4 @@ impl FileLike for FileInode {
     fn write(&self, reader: ostd::mm::VmReader) -> crate::error::Result<usize> {
         self.inode.write_at(0, reader)
     }
-
-    fn as_inode(&self) -> Option<&dyn Inode> {
-        Some(self.inode.as_ref())
-    }
 }
