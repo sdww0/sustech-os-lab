@@ -1,10 +1,10 @@
-use alloc::{sync::Arc, vec::Vec};
+use alloc::{string::String, sync::Arc, vec::Vec};
 use ostd::{
     mm::{FallibleVmRead, FallibleVmWrite, VmReader, VmWriter},
     sync::Mutex,
 };
 
-use crate::error::Result;
+use crate::error::{Errno, Error, Result};
 use crate::fs::{Inode, InodeMeta};
 
 pub struct RamInode {
@@ -56,6 +56,10 @@ impl Inode for RamInode {
     fn metadata(&self) -> &InodeMeta {
         &self.metadata
     }
+
+    fn open(self: Arc<Self>, name: String) -> Arc<dyn Inode> {
+        self
+    }
 }
 
 pub struct RamFS {
@@ -76,14 +80,14 @@ impl RamFS {
             }),
         }
     }
-
-    pub fn root_inode(&self) -> Arc<RamInode> {
-        self.root.clone()
-    }
 }
 
 impl crate::fs::FileSystem for RamFS {
     fn name(&self) -> &str {
         "ramfs"
+    }
+
+    fn root_inode(&self) -> Arc<dyn Inode> {
+        self.root.clone()
     }
 }

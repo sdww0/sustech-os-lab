@@ -8,6 +8,8 @@ const INIT_PROC: &[u8] =
     include_bytes_aligned::include_bytes_aligned!(32, "../../target/user_prog/init_proc");
 const PIPE: &[u8] =
     include_bytes_aligned::include_bytes_aligned!(32, "../../target/user_prog/pipe");
+const RAMFS: &[u8] =
+    include_bytes_aligned::include_bytes_aligned!(32, "../../target/user_prog/ramfs");
 const READ_STDIN: &[u8] =
     include_bytes_aligned::include_bytes_aligned!(32, "../../target/user_prog/read_stdin");
 const REPARENT: &[u8] =
@@ -27,6 +29,7 @@ pub fn init() {
         user_progs.insert("hello_world", HELLO_WORLD);
         user_progs.insert("init_proc", INIT_PROC);
         user_progs.insert("pipe", PIPE);
+        user_progs.insert("ramfs", RAMFS);
         user_progs.insert("read_stdin", READ_STDIN);
         user_progs.insert("reparent", REPARENT);
         user_progs.insert("rr_test", RR_TEST);

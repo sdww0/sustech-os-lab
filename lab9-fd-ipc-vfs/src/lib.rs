@@ -20,6 +20,7 @@ pub fn main() {
     logger::init();
     progs::init();
     sched::init();
+    fs::init();
 
     let process = process::Process::new(progs::lookup_progs("init_proc").unwrap());
     process.run();

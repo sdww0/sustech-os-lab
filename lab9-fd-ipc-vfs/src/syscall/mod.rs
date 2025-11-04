@@ -2,6 +2,7 @@ mod brk;
 mod clone;
 mod exec;
 mod exit;
+mod open;
 mod pipe;
 mod prlimit;
 mod read;
@@ -33,6 +34,7 @@ use crate::syscall::write::{sys_write, sys_writev};
 pub struct SyscallReturn(pub isize);
 
 pub fn handle_syscall(user_context: &mut UserContext, current_process: &Arc<Process>) {
+    const SYS_OPENAT: usize = 56;
     const SYS_PIPE2: usize = 59;
 
     const SYS_READ: usize = 63;
@@ -126,6 +128,13 @@ pub fn handle_syscall(user_context: &mut UserContext, current_process: &Arc<Proc
 
         SYS_WRITE => sys_write(args[0] as _, args[1] as _, args[2] as _, current_process),
         SYS_EXIT | SYS_EXIT_GROUP => sys_exit(args[0] as _, current_process),
+        SYS_OPENAT => open::sys_openat(
+            args[0] as _,
+            args[1] as _,
+            args[2] as _,
+            args[3] as _,
+            current_process,
+        ),
         _ => Err(Error::new(Errno::ENOSYS)),
     };
 
