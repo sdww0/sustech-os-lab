@@ -4,6 +4,7 @@ pub mod pipe;
 pub mod ramfs;
 pub mod util;
 
+use crate::error::Result;
 use core::time::Duration;
 
 pub use file::{FileLike, Stderr, Stdin, Stdout};
@@ -14,8 +15,8 @@ pub trait FileSystem {
 }
 
 pub trait Inode: Send + Sync {
-    fn read_at(&self, offset: usize, writer: VmWriter) -> usize;
-    fn write_at(&self, offset: usize, reader: VmReader) -> usize;
+    fn read_at(&self, offset: usize, writer: VmWriter) -> Result<usize>;
+    fn write_at(&self, offset: usize, reader: VmReader) -> Result<usize>;
     fn metadata(&self) -> &InodeMeta;
     fn size(&self) -> usize;
 }

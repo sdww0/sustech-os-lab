@@ -1,9 +1,10 @@
-use alloc::{sync::Arc, vec, vec::Vec};
+use alloc::{sync::Arc, vec::Vec};
 use ostd::{
     mm::{FallibleVmRead, FallibleVmWrite, VmReader, VmWriter},
     sync::Mutex,
 };
 
+use crate::error::Result;
 use crate::fs::{Inode, InodeMeta};
 
 pub struct RamInode {
@@ -12,10 +13,10 @@ pub struct RamInode {
 }
 
 impl Inode for RamInode {
-    fn read_at(&self, offset: usize, mut writer: ostd::mm::VmWriter) -> usize {
+    fn read_at(&self, offset: usize, mut writer: ostd::mm::VmWriter) -> Result<usize> {
         let data = self.data.lock();
         if offset >= self.data.lock().len() {
-            return 0;
+            return Ok(0);
         }
 
         let read_len = core::cmp::min(self.data.lock().len() - offset, writer.avail());
@@ -24,10 +25,10 @@ impl Inode for RamInode {
                 &(*data.as_slice())[offset..offset + read_len],
             ))
             .unwrap();
-        read_len
+        Ok(read_len)
     }
 
-    fn write_at(&self, offset: usize, mut reader: ostd::mm::VmReader) -> usize {
+    fn write_at(&self, offset: usize, mut reader: ostd::mm::VmReader) -> Result<usize> {
         let mut data = self.data.lock();
         if offset > data.len() {
             // Fill the gap with zeros
@@ -45,7 +46,7 @@ impl Inode for RamInode {
                 &mut (*data.as_mut_slice())[offset..offset + write_len],
             ))
             .unwrap();
-        write_len
+        Ok(write_len)
     }
 
     fn size(&self) -> usize {

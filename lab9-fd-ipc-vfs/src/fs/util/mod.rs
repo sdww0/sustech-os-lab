@@ -14,11 +14,11 @@ impl FileInode {
 
 impl FileLike for FileInode {
     fn read(&self, writer: ostd::mm::VmWriter) -> crate::error::Result<usize> {
-        Ok(self.inode.read_at(0, writer))
+        self.inode.read_at(0, writer)
     }
 
     fn write(&self, reader: ostd::mm::VmReader) -> crate::error::Result<usize> {
-        Ok(self.inode.write_at(0, reader))
+        self.inode.write_at(0, reader)
     }
 
     fn as_inode(&self) -> Option<&dyn Inode> {
