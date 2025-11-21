@@ -31,10 +31,11 @@ pub trait Inode: Send + Sync {
     fn open(self: Arc<Self>, name: String) -> Arc<dyn Inode>;
     fn read_at(&self, offset: usize, writer: VmWriter) -> Result<usize>;
     fn write_at(&self, offset: usize, reader: VmReader) -> Result<usize>;
-    fn metadata(&self) -> &InodeMeta;
+    fn metadata(&self) -> InodeMeta;
     fn size(&self) -> usize;
 }
 
+#[derive(Clone)]
 pub struct InodeMeta {
     /// File size
     size: usize,

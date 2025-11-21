@@ -1,7 +1,7 @@
 use alloc::{string::String, sync::Arc, vec::Vec};
 use ostd::{
     mm::{FallibleVmRead, FallibleVmWrite, VmReader, VmWriter},
-    sync::Mutex,
+    sync::{Mutex, RwMutex},
 };
 
 use crate::error::{Errno, Error, Result};
@@ -9,7 +9,7 @@ use crate::fs::{Inode, InodeMeta};
 
 pub struct RamInode {
     data: Mutex<Vec<u8>>,
-    metadata: InodeMeta,
+    metadata: RwMutex<InodeMeta>,
 }
 
 impl Inode for RamInode {
@@ -50,11 +50,11 @@ impl Inode for RamInode {
     }
 
     fn size(&self) -> usize {
-        self.data.lock().len()
+        self.metadata.read().size
     }
 
-    fn metadata(&self) -> &InodeMeta {
-        &self.metadata
+    fn metadata(&self) -> InodeMeta {
+        self.metadata.read().clone()
     }
 
     fn open(self: Arc<Self>, name: String) -> Arc<dyn Inode> {
@@ -71,12 +71,12 @@ impl RamFS {
         RamFS {
             root: Arc::new(RamInode {
                 data: Mutex::new(Vec::new()),
-                metadata: InodeMeta {
+                metadata: RwMutex::new(InodeMeta {
                     size: 0,
                     atime: core::time::Duration::new(0, 0),
                     mtime: core::time::Duration::new(0, 0),
                     ctime: core::time::Duration::new(0, 0),
-                },
+                }),
             }),
         }
     }
