@@ -1,16 +1,24 @@
-use alloc::collections::linked_list::LinkedList;
+use alloc::{collections::linked_list::LinkedList, sync::Arc};
 use ostd::mm::{PAGE_SIZE, PageFlags, Vaddr};
+use riscv::register::scause::Exception;
 
-use crate::mm::VmMapping;
+use crate::{
+    mm::{
+        VmMapping,
+        fault::{DefaultPageFaultHandler, PageFaultContext, PageFaultHandler},
+    },
+    process::Process,
+};
 
 /// Represents a continous virtual memory area, which consists of multiple mappings.
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct VmArea {
     base_vaddr: Vaddr,
     /// Mapping page count with PAGE_SIZE as unit.
     pages: usize,
     perms: PageFlags,
     mappings: LinkedList<VmMapping>,
+    fault_handler: Arc<dyn PageFaultHandler>,
 }
 
 impl VmArea {
@@ -20,7 +28,47 @@ impl VmArea {
             pages,
             perms,
             mappings: LinkedList::new(),
+            fault_handler: Arc::new(DefaultPageFaultHandler),
         }
+    }
+
+    pub fn new_with_handler(
+        base_vaddr: Vaddr,
+        pages: usize,
+        perms: PageFlags,
+        fault_handler: Arc<dyn PageFaultHandler>,
+    ) -> Self {
+        Self {
+            base_vaddr,
+            pages,
+            perms,
+            mappings: LinkedList::new(),
+            fault_handler,
+        }
+    }
+
+    pub fn handle_page_fault(
+        &mut self,
+        process: &Arc<Process>,
+        vaddr: Vaddr,
+        fault: Exception,
+    ) -> crate::error::Result<()> {
+        debug_assert!(
+            self.contains_vaddr(vaddr),
+            "VmArea does not contain vaddr {:x?}",
+            vaddr
+        );
+        self.fault_handler.handle_page_fault(PageFaultContext::new(
+            self.perms,
+            &mut self.mappings,
+            process,
+            vaddr,
+            fault,
+        ))
+    }
+
+    pub fn page_fault_handler(&self) -> &Arc<dyn PageFaultHandler> {
+        &self.fault_handler
     }
 
     pub fn perms(&self) -> PageFlags {

@@ -3,21 +3,17 @@ use ostd::mm::{Frame, PAGE_SIZE, PageFlags, Vaddr};
 #[derive(Debug, Clone)]
 pub struct VmMapping {
     base_vaddr: Vaddr,
-    frame: Option<Frame<()>>,
+    frame: Frame<()>,
     perms: PageFlags,
 }
 
 impl VmMapping {
-    pub fn new(base_vaddr: Vaddr, perms: PageFlags) -> Self {
+    pub fn new(base_vaddr: Vaddr, perms: PageFlags, frame: Frame<()>) -> Self {
         Self {
             base_vaddr,
-            frame: None,
+            frame,
             perms,
         }
-    }
-
-    pub fn set_frame(&mut self, frame: Frame<()>) {
-        self.frame = Some(frame);
     }
 
     pub fn contains_vaddr(&self, vaddr: Vaddr) -> bool {
@@ -37,6 +33,6 @@ impl VmMapping {
     }
 
     pub fn frame(&self) -> &Frame<()> {
-        self.frame.as_ref().unwrap()
+        &self.frame
     }
 }

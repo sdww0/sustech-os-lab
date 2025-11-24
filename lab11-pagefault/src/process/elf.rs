@@ -1,4 +1,5 @@
 use align_ext::AlignExt;
+use alloc::sync::Arc;
 use log::debug;
 use ostd::{
     arch::cpu::context::UserContext,
@@ -7,7 +8,7 @@ use ostd::{
 };
 
 use crate::{
-    mm::{MemorySpace, area::VmArea},
+    mm::{MemorySpace, area::VmArea, fault::AllocationPageFaultHandler},
     process::USER_STACK_SIZE,
 };
 
@@ -79,7 +80,12 @@ fn parse_elf(input: &[u8], memory_space: &MemorySpace, user_cpu_state: &mut User
 
     // Second, init the user stack with addr: 0x40_0000_0000 - 10 * PAGE_SIZE.
     let stack_low = 0x40_0000_0000 - 10 * PAGE_SIZE - USER_STACK_SIZE;
-    memory_space.map(VmArea::new(stack_low, 1, PageFlags::RW));
+    memory_space.add_area(VmArea::new_with_handler(
+        stack_low,
+        USER_STACK_SIZE / PAGE_SIZE,
+        PageFlags::RW,
+        Arc::new(AllocationPageFaultHandler),
+    ));
     user_cpu_state.set_stack_pointer(0x40_0000_0000 - 10 * PAGE_SIZE - 32);
     user_cpu_state.set_instruction_pointer(header.pt2.entry_point() as usize);
 
