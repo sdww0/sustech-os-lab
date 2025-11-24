@@ -3,7 +3,7 @@ use core::sync::atomic::{AtomicUsize, Ordering};
 use align_ext::AlignExt;
 use ostd::mm::{PAGE_SIZE, PageFlags, Vaddr};
 
-use crate::mm::{VmMapping, area::VmArea};
+use crate::mm::area::VmArea;
 
 use super::current_process;
 
@@ -25,6 +25,10 @@ impl UserHeap {
 
     pub fn current_end(&self) -> usize {
         self.current_end.load(Ordering::Relaxed)
+    }
+
+    pub fn base(&self) -> Vaddr {
+        self.base
     }
 
     pub fn brk(&self, new_end: Option<Vaddr>) -> Option<Vaddr> {

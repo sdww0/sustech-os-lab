@@ -1,21 +1,43 @@
 pub mod area;
 pub mod mapping;
 
+use align_ext::AlignExt;
 use alloc::{collections::linked_list::LinkedList, sync::Arc};
 pub use mapping::VmMapping;
 use ostd::{
     arch::cpu::context::CpuExceptionInfo,
     mm::{
-        CachePolicy, FrameAllocOptions, MAX_USERSPACE_VADDR, PAGE_SIZE, PageProperty, Segment,
-        VmSpace, io_util::HasVmReaderWriter,
+        CachePolicy, FrameAllocOptions, MAX_USERSPACE_VADDR, PAGE_SIZE, PageFlags, PageProperty,
+        Segment, VmSpace, io_util::HasVmReaderWriter,
     },
     sync::SpinLock,
     task::disable_preempt,
 };
 
-use crate::mm::area::VmArea;
+use crate::{
+    mm::area::VmArea,
+    process::{Process, USER_STACK_SIZE},
+};
 
-pub fn page_fault_handler(cpu_exception: &CpuExceptionInfo) -> core::result::Result<(), ()> {
+pub fn page_fault_handler(
+    process: &Arc<Process>,
+    cpu_exception: &CpuExceptionInfo,
+) -> core::result::Result<(), ()> {
+    let memory_space = process.memory_space();
+    let page_fault_addr = cpu_exception.page_fault_addr;
+
+    // Stack
+    let stack_low = 0x40_0000_0000 - 10 * PAGE_SIZE - USER_STACK_SIZE;
+    let stack_high = 0x40_0000_0000 - 10 * PAGE_SIZE;
+    if (stack_low..stack_high).contains(&page_fault_addr) {
+        memory_space.map(VmArea::new(
+            page_fault_addr.align_down(PAGE_SIZE),
+            1,
+            PageFlags::RW,
+        ));
+        return Ok(());
+    }
+
     Err(())
 }
 

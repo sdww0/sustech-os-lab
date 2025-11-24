@@ -1,5 +1,3 @@
-use core::sync::atomic::{AtomicBool, Ordering};
-
 use ostd::mm::{Frame, PAGE_SIZE, PageFlags, Vaddr};
 
 #[derive(Debug, Clone)]

@@ -268,9 +268,11 @@ fn create_user_task(process: &Arc<Process>, user_context: Box<UserContext>) -> A
                         // if the FPU is not enabled. Here we just skip it.
                         user_context
                             .set_instruction_pointer(user_context.instruction_pointer() + 2);
-                    } else if exception.cpu_exception() == Exception::StorePageFault {
+                    } else if exception.cpu_exception() == Exception::StorePageFault
+                        || exception.cpu_exception() == Exception::LoadPageFault
+                    {
                         // Handle page fault in mm module
-                        if let Err(_) = crate::mm::page_fault_handler(&exception) {
+                        if let Err(_) = crate::mm::page_fault_handler(&process, &exception) {
                             early_println!(
                                 "Process {} killed by unhandled page fault at address {:#x}   at instruction {:#x}",
                                 process.pid,
