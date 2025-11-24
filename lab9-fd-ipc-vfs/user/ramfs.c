@@ -83,5 +83,32 @@ int main() {
         wait(NULL); // Wait for the child process to finish
     }
 
+
+    // Write Large data (8192B) to hello
+    // Open "hello" and write "Hello" in it
+    fd1 = open("hello", O_CREAT | O_WRONLY, 0644);
+    if (fd1 < 0) {
+        perror("Failed to open hello");
+        return 1;
+    }
+
+    __uint8_t buffer[8192] = {0};
+
+    if (write(fd1, buffer, 8192) != 8192) {
+        perror("Failed to write to hello");
+        close(fd1);
+        return 1;
+    }
+
+    if (read(fd1, buffer, 8192) != 8192) {
+        perror("Failed to write to hello");
+        close(fd1);
+        return 1;
+    }
+
+
+    close(fd1);
+
+
     return 0;
 }
