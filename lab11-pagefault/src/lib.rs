@@ -21,7 +21,6 @@ pub fn main() {
     progs::init();
     sched::init();
     fs::init();
-    mm::init();
 
     let process = process::Process::new(progs::lookup_progs("init_proc").unwrap());
     process.run();

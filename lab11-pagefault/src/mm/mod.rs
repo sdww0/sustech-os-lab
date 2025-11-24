@@ -15,10 +15,6 @@ use ostd::{
 
 use crate::mm::area::VmArea;
 
-pub fn init() {
-    ostd::arch::trap::inject_user_page_fault_handler(page_fault_handler);
-}
-
 pub fn page_fault_handler(cpu_exception: &CpuExceptionInfo) -> core::result::Result<(), ()> {
     Err(())
 }
