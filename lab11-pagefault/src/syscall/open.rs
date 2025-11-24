@@ -6,10 +6,18 @@ use alloc::vec;
 use log::debug;
 use ostd::mm::{FallibleVmRead, Vaddr, VmWriter};
 
-use crate::error::Result;
+use crate::error::{Errno, Error, Result};
+use crate::fs::InodeType;
 use crate::fs::file_table::FileEntry;
+use crate::fs::util::PathString;
 use crate::process::Process;
 use crate::syscall::SyscallReturn;
+
+bitflags::bitflags! {
+    pub struct OpenFlags: u32 {
+        const O_CREAT = 1 << 6;
+    }
+}
 
 pub fn sys_openat(
     dfd: usize,
@@ -39,9 +47,18 @@ pub fn sys_openat(
         .to_str()
         .unwrap();
 
-    let root_inode = crate::fs::ROOT.get().unwrap().root_inode();
+    let create = OpenFlags::from_bits_truncate(flags as u32).contains(OpenFlags::O_CREAT);
+    let mut path_string = PathString::new(file_name.to_string());
+    let current_inode = crate::fs::ROOT.get().unwrap().root_inode();
+    if path_string.is_empty() {
+        return Err(Error::new(Errno::EINVAL));
+    }
 
-    let open_inode = root_inode.open(file_name.to_string());
+    let open_inode = if create {
+        path_string.create(current_inode.as_ref(), InodeType::File)?
+    } else {
+        path_string.lookup(current_inode.as_ref())?
+    };
 
     let file = crate::fs::util::FileInode::new(open_inode);
     let fd = current_process

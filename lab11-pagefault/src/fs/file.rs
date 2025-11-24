@@ -1,4 +1,4 @@
-use alloc::vec;
+use alloc::{sync::Arc, vec};
 use ostd::{
     early_print,
     mm::{Fallible, FallibleVmRead, VmReader, VmWriter},
@@ -7,12 +7,17 @@ use ostd::{
 use crate::{
     console::receive_str,
     error::{Errno, Error, Result},
+    fs::Inode,
 };
 use core::str;
 
 pub trait FileLike: Sync + Send {
     fn read(&self, writer: VmWriter) -> Result<usize>;
     fn write(&self, reader: VmReader) -> Result<usize>;
+
+    fn as_inode(&self) -> Option<Arc<dyn Inode>> {
+        None
+    }
 }
 
 pub struct Stdin;

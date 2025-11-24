@@ -28,14 +28,27 @@ pub trait FileSystem: Send + Sync {
 }
 
 pub trait Inode: Send + Sync {
-    fn open(self: Arc<Self>, name: String) -> Arc<dyn Inode>;
+    fn lookup(&self, name: &str) -> Result<Arc<dyn Inode>>;
+    fn create(&self, name: &str, type_: InodeType) -> Result<Arc<dyn Inode>>;
+
+    fn read_link(&self) -> Result<String>;
+    fn write_link(&self, target: &str) -> Result<()>;
+
     fn read_at(&self, offset: usize, writer: VmWriter) -> Result<usize>;
     fn write_at(&self, offset: usize, reader: VmReader) -> Result<usize>;
-    fn metadata(&self) -> InodeMeta;
+    fn metadata(&self) -> &InodeMeta;
     fn size(&self) -> usize;
+
+    fn typ(&self) -> InodeType;
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum InodeType {
+    File,
+    Directory,
+    SymbolLink,
+}
+
 pub struct InodeMeta {
     /// File size
     size: usize,
