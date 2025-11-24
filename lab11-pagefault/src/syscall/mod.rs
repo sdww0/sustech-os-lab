@@ -2,6 +2,7 @@ mod brk;
 mod clone;
 mod exec;
 mod exit;
+mod mmap;
 mod open;
 mod pipe;
 mod prlimit;
@@ -23,6 +24,7 @@ use crate::syscall::brk::sys_brk;
 use crate::syscall::clone::sys_clone;
 use crate::syscall::exec::sys_execve;
 use crate::syscall::exit::sys_exit;
+use crate::syscall::mmap::sys_mmap;
 use crate::syscall::pipe::sys_pipe2;
 use crate::syscall::prlimit::sys_prlimit64;
 use crate::syscall::read::sys_read;
@@ -52,6 +54,7 @@ pub fn handle_syscall(user_context: &mut UserContext, current_process: &Arc<Proc
     const SYS_BRK: usize = 214;
     const SYS_CLONE: usize = 220;
     const SYS_EXECVE: usize = 221;
+    const SYS_MMAP: usize = 222;
     const SYS_MPROTECT: usize = 226;
     const SYS_WAIT4: usize = 260;
     const SYS_PRLIMIT64: usize = 261;
@@ -133,6 +136,15 @@ pub fn handle_syscall(user_context: &mut UserContext, current_process: &Arc<Proc
             args[1] as _,
             args[2] as _,
             args[3] as _,
+            current_process,
+        ),
+        SYS_MMAP => sys_mmap(
+            args[0] as _,
+            args[1] as _,
+            args[2] as _,
+            args[3] as _,
+            args[4] as _,
+            args[5] as _,
             current_process,
         ),
         _ => Err(Error::new(Errno::ENOSYS)),

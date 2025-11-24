@@ -10,6 +10,8 @@ const HELLO_WORLD: &[u8] =
     include_bytes_aligned::include_bytes_aligned!(32, "../../target/user_prog/hello_world");
 const INIT_PROC: &[u8] =
     include_bytes_aligned::include_bytes_aligned!(32, "../../target/user_prog/init_proc");
+const MMAP_TEST: &[u8] =
+    include_bytes_aligned::include_bytes_aligned!(32, "../../target/user_prog/mmap_test");
 const PIPE: &[u8] =
     include_bytes_aligned::include_bytes_aligned!(32, "../../target/user_prog/pipe");
 const RAMFS: &[u8] =
@@ -34,6 +36,7 @@ pub fn init() {
         user_progs.insert("fork_time", FORK_TIME);
         user_progs.insert("hello_world", HELLO_WORLD);
         user_progs.insert("init_proc", INIT_PROC);
+        user_progs.insert("mmap_test", MMAP_TEST);
         user_progs.insert("pipe", PIPE);
         user_progs.insert("ramfs", RAMFS);
         user_progs.insert("read_stdin", READ_STDIN);

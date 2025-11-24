@@ -15,11 +15,11 @@ use ostd::{
 use riscv::register::scause::Exception;
 
 pub struct PageFaultContext<'a> {
-    perms: PageFlags,
-    mappings: &'a mut LinkedList<VmMapping>,
-    process: &'a Arc<Process>,
-    vaddr: Vaddr,
-    fault: Exception,
+    pub perms: PageFlags,
+    pub mappings: &'a mut LinkedList<VmMapping>,
+    pub process: &'a Arc<Process>,
+    pub vaddr: Vaddr,
+    pub fault: Exception,
 }
 
 impl PageFaultContext<'_> {
