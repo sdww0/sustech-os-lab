@@ -31,7 +31,9 @@ pub fn current_process() -> Arc<Process> {
     let current = Task::current().unwrap();
     current
         .data()
-        .downcast_ref::<Arc<Process>>()
+        .downcast_ref::<Weak<Process>>()
+        .unwrap()
+        .upgrade()
         .unwrap()
         .clone()
 }
@@ -305,7 +307,7 @@ fn create_user_task(process: &Arc<Process>, user_context: Box<UserContext>) -> A
 
     Arc::new(
         TaskOptions::new(user_task_func)
-            .data(process.clone())
+            .data(Arc::downgrade(process))
             .build()
             .unwrap(),
     )

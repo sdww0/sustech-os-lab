@@ -21,7 +21,7 @@ int main() {
     int i;
     pid_t pid;
     
-    printf("Starting fork performance test (%d forks)...\n", NUM_FORKS);
+    printf("Starting fork+exec performance test (%d forks)...\n", NUM_FORKS);
     
     start_time = get_current_time_us();
 
@@ -33,6 +33,8 @@ int main() {
             perror("fork failed");
             exit(1);
         } else if (pid == 0) {
+            execl("hello_world", "hello_world", "temp", NULL);
+            perror("exec failed");
             exit(0);
         } else {
             wait(NULL);
@@ -42,10 +44,10 @@ int main() {
     end_time = get_current_time_us();
     
     long long total_time = end_time - start_time;
-    
+
     printf("\nResult:\n");
-    printf("Total fork count: %d\n", NUM_FORKS);
+    printf("Total fork+exec count: %d\n", NUM_FORKS);
     printf("Total time: %lld microseconds\n", total_time);
-    
+
     return 0;
 }

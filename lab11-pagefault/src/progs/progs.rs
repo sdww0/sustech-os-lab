@@ -2,6 +2,8 @@ const EXEC: &[u8] =
     include_bytes_aligned::include_bytes_aligned!(32, "../../target/user_prog/exec");
 const FORK: &[u8] =
     include_bytes_aligned::include_bytes_aligned!(32, "../../target/user_prog/fork");
+const FORK_EXEC_TIME: &[u8] =
+    include_bytes_aligned::include_bytes_aligned!(32, "../../target/user_prog/fork_exec_time");
 const FORK_TIME: &[u8] =
     include_bytes_aligned::include_bytes_aligned!(32, "../../target/user_prog/fork_time");
 const HELLO_WORLD: &[u8] =
@@ -28,6 +30,7 @@ pub fn init() {
         let mut user_progs = alloc::collections::btree_map::BTreeMap::new();
         user_progs.insert("exec", EXEC);
         user_progs.insert("fork", FORK);
+        user_progs.insert("fork_exec_time", FORK_EXEC_TIME);
         user_progs.insert("fork_time", FORK_TIME);
         user_progs.insert("hello_world", HELLO_WORLD);
         user_progs.insert("init_proc", INIT_PROC);
