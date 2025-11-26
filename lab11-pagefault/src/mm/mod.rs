@@ -123,32 +123,7 @@ impl MemorySpace {
                 let mapping = VmMapping::new(old_mapping.base_vaddr(), new_area.perms(), new_frame);
                 new_area.add_mapping(mapping);
             }
-
-            // let new_frames = FrameAllocOptions::new()
-            //     .alloc_segment(new_area.pages())
-            //     .unwrap();
-            // for (i, new_frame) in new_frames.enumerate() {
-            //     let Some(old_frame) = old_frames_iter.next() else {
-            //         break;
-            //     };
-
-            //     let new_frame =
-
-            //     // Copy data from old frame to new frame
-            //     new_frame.writer().write(&mut old_frame.reader());
-
-            //     // Map new frame
-            //     cursor_mut.map(
-            //         new_frame.clone().into(),
-            //         PageProperty::new_user(new_area.perms(), CachePolicy::Writeback),
-            //     );
-
-            //     let mut mapping =
-            //         VmMapping::new(new_area.base_vaddr() + i * PAGE_SIZE, new_area.perms());
-            //     mapping.set_frame(new_frame.clone());
-            //     new_area.add_mapping(mapping);
-            // }
-
+            
             new_mappings.push_back(new_area);
         }
         drop(new_mappings);
