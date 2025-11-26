@@ -8,6 +8,8 @@ use ostd::{
     },
 };
 
+use crate::process::Process;
+
 pub struct FifoScheduler {
     run_queue: SpinLock<FifoRunQueue>,
 }
@@ -60,6 +62,11 @@ impl LocalRunQueue for FifoRunQueue {
     }
 
     fn update_current(&mut self, flags: UpdateFlags) -> bool {
+        // If queue is empty, do nothing
+        if self.queue.is_empty() {
+            return false;
+        }
+
         !matches!(flags, UpdateFlags::Tick)
     }
 
@@ -70,6 +77,13 @@ impl LocalRunQueue for FifoRunQueue {
     fn try_pick_next(&mut self) -> Option<&Arc<Task>> {
         if let Some(current_task) = self.current.replace(self.queue.pop_front()?) {
             self.queue.push_back(current_task);
+        }
+
+        // Activate the memory space of the current task
+        if let Some(ref current_task) = self.current {
+            if let Some(process) = current_task.data().downcast_ref::<Arc<Process>>() {
+                process.memory_space().vm_space().activate();
+            }
         }
 
         self.current.as_ref()

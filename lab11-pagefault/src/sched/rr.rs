@@ -8,6 +8,8 @@ use ostd::{
     },
 };
 
+use crate::process::Process;
+
 pub struct RrScheduler {
     run_queue: SpinLock<RrRunQueue>,
 }
@@ -60,7 +62,7 @@ impl LocalRunQueue for RrRunQueue {
                 let Some(entity) = self.current.as_mut() else {
                     return false;
                 };
-                entity.time_slice.elapse()
+                entity.time_slice.elapse() & !self.entities.is_empty()
             }
             _ => true,
         }
@@ -73,6 +75,13 @@ impl LocalRunQueue for RrRunQueue {
     fn try_pick_next(&mut self) -> Option<&Arc<Task>> {
         if let Some(current_task) = self.current.replace(self.entities.pop_front()?) {
             self.entities.push_back(current_task);
+        }
+
+        // Activate the memory space of the current task
+        if let Some(ref current_task) = self.current {
+            if let Some(process) = current_task.task.data().downcast_ref::<Arc<Process>>() {
+                process.memory_space().vm_space().activate();
+            }
         }
 
         self.current.as_ref().map(|entity| &entity.task)
