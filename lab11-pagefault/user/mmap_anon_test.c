@@ -10,6 +10,9 @@
 
 int main()
 {
+    // Disable buffer in STDOUT
+    setvbuf(stdout, NULL, _IONBF, 0);
+    
     struct timespec start, end;
 
     printf("Starting Anonymous Mmap Lazy Allocation Test...\n");
