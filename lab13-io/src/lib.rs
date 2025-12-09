@@ -4,6 +4,7 @@
 #![feature(ascii_char)]
 
 pub mod console;
+mod drivers;
 mod error;
 mod fs;
 mod logger;
@@ -19,6 +20,7 @@ extern crate alloc;
 pub fn main() {
     logger::init();
     progs::init();
+    drivers::init();
     sched::init();
     fs::init();
 
