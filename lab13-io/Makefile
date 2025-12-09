@@ -32,6 +32,11 @@ $(TARGET_USER_DIR):
 
 generate_progs_rs: $(PROGS_RS)
 
+blk_img:
+	@dd if=/dev/zero of=blk.img bs=1M count=64
+	# Write "Hello World from Image!" to the first sector
+	@echo -n "Hello World from Image!" | dd of=blk.img bs=1 seek=0 conv=notrunc
+
 $(PROGS_RS): $(USER_PROGRAMS) | $(TARGET_USER_DIR)
 	@echo "Generating $(PROGS_RS)"
 	@rm -f $(PROGS_RS)
@@ -55,14 +60,18 @@ $(PROGS_RS): $(USER_PROGRAMS) | $(TARGET_USER_DIR)
 clean:
 	rm -f $(PROGS_RS)
 	cargo clean
+	rm -f blk.img
 
-run: build_user_programs generate_progs_rs
+run: build_user_programs generate_progs_rs blk_img
 	cargo osdk run --target-arch=riscv64 --kcmd-args="ostd.log_level=$(LOG_LEVEL)" --release
 
-build: build_user_programs generate_progs_rs
+debug: build_user_programs generate_progs_rs blk_img
+	cargo osdk run --target-arch=riscv64 --kcmd-args="ostd.log_level=$(LOG_LEVEL)"
+
+build: build_user_programs generate_progs_rs blk_img
 	cargo osdk build --target-arch=riscv64 --release
 
-test: build_user_programs generate_progs_rs
+test: build_user_programs generate_progs_rs blk_img
 	cargo osdk test --target-arch=riscv64 --release
 
 .PHONY: build_user_programs generate_progs_rs clean run

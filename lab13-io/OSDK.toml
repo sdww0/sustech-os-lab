@@ -17,4 +17,6 @@ args = """\
     -serial chardev:mux \
     -monitor chardev:mux \
     -chardev stdio,id=mux,mux=on,signal=off,logfile=qemu.log \
+    -device virtio-blk-device,drive=x0,serial=blk0 \
+    -drive file=blk.img,if=none,id=x0,format=raw \
 """

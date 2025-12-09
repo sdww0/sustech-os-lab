@@ -3,3 +3,4 @@ qemu.log
 qemu
 src/fs/progs.rs
 *.out
+blk.img
