@@ -51,8 +51,8 @@ impl Virtqueue {
         // Second frame: (used ring)
         let (descriptor_frame, used_ring_frame) = frames.split(PAGE_SIZE);
 
-        let desc_dma = Arc::new(DmaCoherent::map(descriptor_frame.into(), true).unwrap());
-        let used_ring_dma = Arc::new(DmaCoherent::map(used_ring_frame.into(), true).unwrap());
+        let desc_dma = Arc::new(DmaCoherent::map(descriptor_frame.into(), false).unwrap());
+        let used_ring_dma = Arc::new(DmaCoherent::map(used_ring_frame.into(), false).unwrap());
         debug!(
             "Virtqueue {}: Descriptor DMA at {:#x}, size {}",
             queue_index,

@@ -29,12 +29,12 @@ impl VirtioBlkDevice {
         let queue = Virtqueue::new(0, &transport).unwrap();
         let request_dma = DmaCoherent::map(
             FrameAllocOptions::new().alloc_segment(1).unwrap().into(),
-            true,
+            false,
         )
         .unwrap();
         let resp_dma = DmaCoherent::map(
             FrameAllocOptions::new().alloc_segment(1).unwrap().into(),
-            true,
+            false,
         )
         .unwrap();
 
