@@ -123,7 +123,7 @@ impl MemorySpace {
                 let mapping = VmMapping::new(old_mapping.base_vaddr(), new_area.perms(), new_frame);
                 new_area.add_mapping(mapping);
             }
-            
+
             new_mappings.push_back(new_area);
         }
         drop(new_mappings);

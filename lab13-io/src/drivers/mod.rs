@@ -28,7 +28,7 @@ fn test_blk_device_read() {
 
     let test_dma = DmaStream::map(
         FrameAllocOptions::new().alloc_segment(1).unwrap().into(),
-        DmaDirection::FromDevice,
+        DmaDirection::Bidirectional,
         true,
     )
     .unwrap();
@@ -43,5 +43,16 @@ fn test_blk_device_read() {
         let data = dma_slice.read();
         let cstr = CStr::from_bytes_until_nul(&data).unwrap();
         early_println!("Read string: {}", cstr.to_str().unwrap());
+    }
+
+    early_println!("Testing block device write...");
+    let bytes = b"Hello, Virtio Block Device!";
+    for blk_device in block_devices.iter() {
+        let mut dma_slice = test_dma_slice_alloc.alloc().unwrap();
+        let mut buffer = [0; 512];
+        buffer[..bytes.len()].copy_from_slice(bytes);
+        dma_slice.write(&buffer);
+
+        blk_device.write_block(0, &mut dma_slice);
     }
 }

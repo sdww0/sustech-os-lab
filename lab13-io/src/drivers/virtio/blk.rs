@@ -90,9 +90,7 @@ impl BlockDevice for VirtioBlkDevice {
         }
     }
 
-    fn write_block(&self, index: usize, data: &DmaSlice<[u8; SECTOR_SIZE], DmaStream>) {
-        todo!()
-    }
+    fn write_block(&self, index: usize, data: &DmaSlice<[u8; SECTOR_SIZE], DmaStream>) {}
 }
 
 #[repr(C)]
