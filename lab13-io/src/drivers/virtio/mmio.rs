@@ -106,6 +106,10 @@ impl VirtioMmioTransport {
         );
     }
 
+    pub fn config_space(&self) -> IoMem {
+        self.layout_io_mem.slice(0x100..0x200)
+    }
+
     pub fn enable_queue(
         &self,
         queue_index: u32,

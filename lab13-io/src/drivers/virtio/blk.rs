@@ -2,8 +2,8 @@ use alloc::vec;
 use alloc::vec::Vec;
 use log::error;
 use ostd::{
-    Pod,
-    mm::{DmaCoherent, DmaStream, FrameAllocOptions},
+    Pod, early_println,
+    mm::{DmaCoherent, DmaStream, FrameAllocOptions, VmIo},
     sync::{LocalIrqDisabled, SpinLock},
 };
 
@@ -37,6 +37,11 @@ impl VirtioBlkDevice {
             false,
         )
         .unwrap();
+
+        let config_io_mem = transport.config_space();
+        let blk_config: VirtioBlkConfig = config_io_mem.read_val(0).unwrap();
+
+        early_println!("Virtio Block Device config: {:#?}", blk_config);
 
         transport.finish_init();
 
@@ -133,4 +138,20 @@ pub enum RespStatus {
     IoErr = 1,
     Unsupported = 2,
     NotReady = 3,
+}
+
+#[repr(C)]
+#[derive(Debug, Copy, Clone, Pod)]
+struct VirtioBlkConfig {
+    capacity: u64,
+    size_max: u32,
+    seg_max: u32,
+    geometry_cylinders: u16,
+    geometry_heads: u8,
+    geometry_sectors: u8,
+    blk_size: u32,
+    physical_block_exp: u8,
+    alignment_offset: u8,
+    min_io_size: u16,
+    opt_io_size: u32,
 }
