@@ -74,4 +74,7 @@ build: build_user_programs generate_progs_rs blk_img
 test: build_user_programs generate_progs_rs blk_img
 	cargo osdk test --target-arch=riscv64 --release
 
+profile_server: build_user_programs generate_progs_rs blk_img
+	cargo osdk run --target-arch=riscv64 --kcmd-args="ostd.log_level=$(LOG_LEVEL)" --gdb-server addr=:1234 --release
+
 .PHONY: build_user_programs generate_progs_rs clean run
