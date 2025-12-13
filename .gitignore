@@ -1,6 +1,9 @@
 target/
-qemu.log
+*.log
 qemu
 src/fs/progs.rs
 *.out
 blk.img
+*.svg
+*.folded
+FlameGraph

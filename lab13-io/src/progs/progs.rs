@@ -6,6 +6,8 @@ const FORK_EXEC_TIME: &[u8] =
     include_bytes_aligned::include_bytes_aligned!(32, "../../target/user_prog/fork_exec_time");
 const FORK_TIME: &[u8] =
     include_bytes_aligned::include_bytes_aligned!(32, "../../target/user_prog/fork_time");
+const FORK_TIME_LOOP: &[u8] =
+    include_bytes_aligned::include_bytes_aligned!(32, "../../target/user_prog/fork_time_loop");
 const HELLO_WORLD: &[u8] =
     include_bytes_aligned::include_bytes_aligned!(32, "../../target/user_prog/hello_world");
 const INIT_PROC: &[u8] =
@@ -36,6 +38,7 @@ pub fn init() {
         user_progs.insert("fork", FORK);
         user_progs.insert("fork_exec_time", FORK_EXEC_TIME);
         user_progs.insert("fork_time", FORK_TIME);
+        user_progs.insert("fork_time_loop", FORK_TIME_LOOP);
         user_progs.insert("hello_world", HELLO_WORLD);
         user_progs.insert("init_proc", INIT_PROC);
         user_progs.insert("mmap_anon_test", MMAP_ANON_TEST);
