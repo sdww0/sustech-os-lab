@@ -3,7 +3,7 @@ target/
 qemu
 src/fs/progs.rs
 *.out
-blk.img
+*.img
 *.svg
 *.folded
 FlameGraph

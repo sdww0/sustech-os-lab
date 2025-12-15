@@ -1,3 +1,4 @@
+pub mod ext2;
 mod file;
 pub mod file_table;
 pub mod pipe;
@@ -14,11 +15,20 @@ use spin::Once;
 
 pub static ROOT: Once<Box<dyn FileSystem>> = Once::new();
 
+pub static EXT2_FS: Once<Box<dyn FileSystem>> = Once::new();
+
 pub fn init() {
     ROOT.call_once(|| {
         let ramfs = ramfs::RamFS::new();
         Box::new(ramfs) as Box<dyn FileSystem>
     });
+
+    for blk_device in crate::drivers::BLOCK_DEVICES.get().unwrap().lock().iter() {
+        if let Ok(fs) = ext2::Ext2Fs::new(blk_device.clone()) {
+            EXT2_FS.call_once(|| Box::new(fs) as Box<dyn FileSystem>);
+            return;
+        }
+    }
 }
 
 pub trait FileSystem: Send + Sync {

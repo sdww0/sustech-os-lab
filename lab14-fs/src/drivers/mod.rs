@@ -20,6 +20,7 @@ pub static BLOCK_DEVICES: Once<Mutex<Vec<Arc<dyn BlockDevice>>>> = Once::new();
 pub fn init() {
     BLOCK_DEVICES.call_once(|| Mutex::new(Vec::new()));
     virtio::init();
+    blk::init();
     test_blk_device_read();
 }
 

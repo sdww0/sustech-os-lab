@@ -37,6 +37,22 @@ impl<T: Pod, D: VmIo + HasDaddr + HasSize> DmaSlice<T, D> {
     }
 }
 
+impl<T: Pod + Send + Sync, D: VmIo + HasDaddr + HasSize> VmIo for DmaSlice<T, D> {
+    fn read(&self, offset: usize, writer: &mut ostd::mm::VmWriter) -> ostd::Result<()> {
+        if offset + writer.avail() > self.size() {
+            return Err(ostd::Error::AccessDenied);
+        }
+        self.dma.read(offset + self.offset, writer)
+    }
+
+    fn write(&self, offset: usize, reader: &mut ostd::mm::VmReader) -> ostd::Result<()> {
+        if offset + reader.remain() > self.size() {
+            return Err(ostd::Error::AccessDenied);
+        }
+        self.dma.write(offset + self.offset, reader)
+    }
+}
+
 pub struct DmaSliceAlloc<T: Pod, D: VmIo + HasDaddr + HasSize> {
     dma: Arc<D>,
     allocator: IdAlloc,

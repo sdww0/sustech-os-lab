@@ -36,6 +36,8 @@ blk_img:
 	@dd if=/dev/zero of=blk.img bs=1M count=64
 	# Write "Hello World from Image!" to the first sector
 	@echo -n "Hello World from Image!" | dd of=blk.img bs=1 seek=0 conv=notrunc
+	@dd if=/dev/zero of=ext2.img bs=1M count=128
+	@mke2fs ext2.img
 
 $(PROGS_RS): $(USER_PROGRAMS) | $(TARGET_USER_DIR)
 	@echo "Generating $(PROGS_RS)"
@@ -60,7 +62,7 @@ $(PROGS_RS): $(USER_PROGRAMS) | $(TARGET_USER_DIR)
 clean:
 	rm -f $(PROGS_RS)
 	cargo clean
-	rm -f blk.img
+	rm -f blk.img ext2.img
 
 run: build_user_programs generate_progs_rs blk_img
 	cargo osdk run --target-arch=riscv64 --kcmd-args="ostd.log_level=$(LOG_LEVEL)" --release
