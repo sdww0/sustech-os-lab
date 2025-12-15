@@ -1,0 +1,22 @@
+project_type = "kernel"
+
+[boot]
+method = "qemu-direct"
+
+[build]
+strip_elf = false
+
+[qemu]
+args = """\
+    -cpu rv64,zba=true,zbb=true \
+    -machine virt \
+    -m 1G \
+    --no-reboot \
+    -nographic \
+    -display none \
+    -serial chardev:mux \
+    -monitor chardev:mux \
+    -chardev stdio,id=mux,mux=on,signal=off,logfile=qemu.log \
+    -device virtio-blk-device,drive=x0,serial=blk0 \
+    -drive file=blk.img,if=none,id=x0,format=raw \
+"""
