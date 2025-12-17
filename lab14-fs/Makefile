@@ -38,6 +38,12 @@ blk_img:
 	@echo -n "Hello World from Image!" | dd of=blk.img bs=1 seek=0 conv=notrunc
 	@dd if=/dev/zero of=ext2.img bs=1M count=128
 	@mke2fs ext2.img
+	# Mount the ext2 image and create a sample file, containing "Hello, Ext2!"
+	@mkdir -p mnt_ext2
+	@sudo mount -o loop ext2.img mnt_ext2
+	@echo -n "Hello, Ext2!" | sudo tee mnt_ext2/hello_ext2.txt > /dev/null
+	@sudo umount mnt_ext2
+	@rm -rf mnt_ext2
 
 $(PROGS_RS): $(USER_PROGRAMS) | $(TARGET_USER_DIR)
 	@echo "Generating $(PROGS_RS)"
