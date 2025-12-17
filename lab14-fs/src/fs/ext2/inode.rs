@@ -80,11 +80,8 @@ fn read_directory(
     }
 
     // Read directory entries
-    let block_ptrs = &raw_inode.block_ptrs;
-
-    let mut direntries = Vec::new();
-
-    for &block_ptr in &block_ptrs.direct_pointers {
+    let mut dir_entries = Vec::new();
+    for &block_ptr in &raw_inode.block_ptrs.direct_pointers {
         if block_ptr.0 == 0 {
             continue;
         }
@@ -95,28 +92,28 @@ fn read_directory(
 
         let mut offset = 0;
         while offset < block_size {
-            let dir_entry: Ext2DirEntry = fs.blk_device.read_val_offset(sector, offset);
+            let dir_entry: Ext2DirEntry = fs
+                .blk_device
+                .read_val_offset(sector + offset / SECTOR_SIZE, offset % SECTOR_SIZE);
 
             if dir_entry.inode() == 0 {
                 break;
             }
 
-            let name = dir_entry.name();
+            offset += dir_entry.length() as usize;
+            dir_entries.push(dir_entry);
 
             debug!(
                 "Dir Entry: inode={}, rec_len={}, name_len={}, name={}",
                 dir_entry.inode(),
                 dir_entry.length(),
                 dir_entry.name_length(),
-                name
+                dir_entry.name()
             );
-
-            offset += dir_entry.length() as usize;
-            direntries.push(dir_entry);
         }
     }
 
-    Some(direntries)
+    Some(dir_entries)
 }
 
 impl super::super::Inode for Inode {
