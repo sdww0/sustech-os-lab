@@ -5,23 +5,19 @@ use ostd::{
     mm::{HasDaddr, HasSize, VmIo},
 };
 
-pub struct DmaSlice<T: Pod, D: VmIo + HasDaddr + HasSize> {
+pub struct DmaSlice<D: VmIo + HasDaddr + HasSize> {
     dma: Arc<D>,
     offset: usize,
-    _phantom: core::marker::PhantomData<T>,
+    size: usize,
 }
 
-impl<T: Pod, D: VmIo + HasDaddr + HasSize> DmaSlice<T, D> {
-    pub fn write(&self, data: &T) {
-        self.dma
-            .write_val(self.offset, data)
-            .expect("Failed to write to DmaCoherent");
+impl<D: VmIo + HasDaddr + HasSize> DmaSlice<D> {
+    pub fn write_no_offset_val<T: Pod>(&self, val: &T) -> ostd::Result<()> {
+        self.write_val(0, val)
     }
 
-    pub fn read(&self) -> T {
-        self.dma
-            .read_val(self.offset)
-            .expect("Failed to read from DmaCoherent")
+    pub fn read_no_offset_val<T: Pod>(&self) -> ostd::Result<T> {
+        self.read_val(0)
     }
 
     pub fn dma(&self) -> &Arc<D> {
@@ -33,11 +29,11 @@ impl<T: Pod, D: VmIo + HasDaddr + HasSize> DmaSlice<T, D> {
     }
 
     pub fn size(&self) -> usize {
-        size_of::<T>()
+        self.size
     }
 }
 
-impl<T: Pod + Send + Sync, D: VmIo + HasDaddr + HasSize> VmIo for DmaSlice<T, D> {
+impl<D: VmIo + HasDaddr + HasSize> VmIo for DmaSlice<D> {
     fn read(&self, offset: usize, writer: &mut ostd::mm::VmWriter) -> ostd::Result<()> {
         if offset + writer.avail() > self.size() {
             return Err(ostd::Error::AccessDenied);
@@ -70,18 +66,18 @@ impl<T: Pod, D: VmIo + HasDaddr + HasSize> DmaSliceAlloc<T, D> {
         }
     }
 
-    pub fn alloc(&mut self) -> Option<DmaSlice<T, D>> {
+    pub fn alloc(&mut self) -> Option<DmaSlice<D>> {
         let alloc_index = self.allocator.alloc()?;
         let offset = alloc_index * size_of::<T>();
 
         Some(DmaSlice {
             dma: self.dma.clone(),
             offset,
-            _phantom: core::marker::PhantomData,
+            size: size_of::<T>(),
         })
     }
 
-    pub fn dealloc(&mut self, slice: DmaSlice<T, D>) {
+    pub fn dealloc(&mut self, slice: DmaSlice<D>) {
         let offset = slice.offset();
         let index = offset / size_of::<T>();
         self.allocator.free(index);

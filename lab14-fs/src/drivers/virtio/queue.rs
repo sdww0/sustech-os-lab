@@ -241,10 +241,7 @@ pub struct VirtqueueCoherentRequest<'a> {
 }
 
 impl<'a> VirtqueueCoherentRequest<'a> {
-    pub fn from_dma_slice(
-        slice: &'a DmaSlice<impl Pod, DmaCoherent>,
-        device_writable: bool,
-    ) -> Self {
+    pub fn from_dma_slice(slice: &'a DmaSlice<DmaCoherent>, device_writable: bool) -> Self {
         Self::new(slice.dma(), slice.offset(), slice.size(), device_writable)
     }
 
@@ -254,7 +251,7 @@ impl<'a> VirtqueueCoherentRequest<'a> {
         len: usize,
         device_writable: bool,
     ) -> Self {
-        assert!(offset + len < PAGE_SIZE);
+        assert!(offset + len < bind_dma.size());
 
         Self {
             bind_dma,
@@ -287,7 +284,7 @@ pub struct VirtqueueStreamRequest<'a> {
 }
 
 impl<'a> VirtqueueStreamRequest<'a> {
-    pub fn from_dma_slice(slice: &'a DmaSlice<impl Pod, DmaStream>, device_writable: bool) -> Self {
+    pub fn from_dma_slice(slice: &'a DmaSlice<DmaStream>, device_writable: bool) -> Self {
         Self::new(slice.dma(), slice.offset(), slice.size(), device_writable)
     }
 
@@ -297,7 +294,7 @@ impl<'a> VirtqueueStreamRequest<'a> {
         len: usize,
         device_writable: bool,
     ) -> Self {
-        assert!(offset + len < PAGE_SIZE);
+        assert!(offset + len < bind_dma.size());
 
         Self {
             bind_dma,

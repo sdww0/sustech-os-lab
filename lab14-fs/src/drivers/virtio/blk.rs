@@ -1,23 +1,25 @@
-use alloc::vec;
+use alloc::boxed::Box;
 use alloc::vec::Vec;
-use log::error;
+use log::{debug, error};
 use ostd::{
-    Pod, early_println,
-    mm::{DmaCoherent, DmaStream, FrameAllocOptions, VmIo},
+    Pod,
+    mm::{DmaCoherent, FrameAllocOptions, VmIo},
     sync::{LocalIrqDisabled, SpinLock},
 };
 
-use crate::drivers::virtio::queue::{
-    VirtqueueCoherentRequest, VirtqueueRequest, VirtqueueStreamRequest,
+use crate::drivers::{
+    blk::BioRequest,
+    virtio::queue::{VirtqueueCoherentRequest, VirtqueueRequest, VirtqueueStreamRequest},
 };
 use crate::drivers::{
-    blk::{BlockDevice, SECTOR_SIZE},
-    utils::{DmaSlice, DmaSliceAlloc},
+    blk::BlockDevice,
+    utils::DmaSliceAlloc,
     virtio::{mmio::VirtioMmioTransport, queue::Virtqueue},
 };
 
 pub struct VirtioBlkDevice {
     transport: VirtioMmioTransport,
+    config: VirtioBlkConfig,
     request_queue: SpinLock<Virtqueue, LocalIrqDisabled>,
 
     request_alloc: SpinLock<DmaSliceAlloc<BlockReq, DmaCoherent>, LocalIrqDisabled>,
@@ -41,7 +43,7 @@ impl VirtioBlkDevice {
         let config_io_mem = transport.config_space();
         let blk_config: VirtioBlkConfig = config_io_mem.read_val(0).unwrap();
 
-        early_println!("Virtio Block Device config: {:#?}", blk_config);
+        debug!("Virtio Block Device config: {:#?}", blk_config);
 
         transport.finish_init();
 
@@ -50,32 +52,45 @@ impl VirtioBlkDevice {
             request_queue: SpinLock::new(queue),
             request_alloc: SpinLock::new(DmaSliceAlloc::new(request_dma)),
             resp_alloc: SpinLock::new(DmaSliceAlloc::new(resp_dma)),
+            config: blk_config,
         }
     }
 }
 
 impl BlockDevice for VirtioBlkDevice {
-    fn read_block(&self, index: usize, data: &mut DmaSlice<[u8; SECTOR_SIZE], DmaStream>) {
+    fn read_block(&self, bio_request: &mut BioRequest) {
         let req_dma = self.request_alloc.lock().alloc().unwrap();
         let resp_dma = self.resp_alloc.lock().alloc().unwrap();
 
         let req = BlockReq {
             type_: ReqType::In as _,
             reserved: 0,
-            sector: index as u64,
+            sector: bio_request.index() as u64,
         };
-        req_dma.write(&req);
+        req_dma.write_no_offset_val(&req).unwrap();
 
         let resp = BlockResp::default();
-        resp_dma.write(&resp);
+        resp_dma.write_no_offset_val(&resp).unwrap();
 
-        let request1 = VirtqueueCoherentRequest::from_dma_slice(&req_dma, false);
-        let request2 = VirtqueueStreamRequest::from_dma_slice(data, true);
-        let request3 = VirtqueueCoherentRequest::from_dma_slice(&resp_dma, true);
+        // Construct Requests
+        let mut requests: Vec<Box<dyn VirtqueueRequest>> =
+            Vec::with_capacity(bio_request.num_sectors() + 2);
+        requests.push(Box::new(VirtqueueCoherentRequest::from_dma_slice(
+            &req_dma, false,
+        )));
+        for data in bio_request.data_slices_mut().iter_mut() {
+            let stream_req = VirtqueueStreamRequest::from_dma_slice(data, true);
+            requests.push(Box::new(stream_req));
+        }
+        requests.push(Box::new(VirtqueueCoherentRequest::from_dma_slice(
+            &resp_dma, true,
+        )));
+        let queue_requests: Vec<&dyn VirtqueueRequest> =
+            requests.iter().map(|r| r.as_ref()).collect();
 
-        let requests: Vec<&dyn VirtqueueRequest> = vec![&request1, &request2, &request3];
+        // Send requests
         let mut queue = self.request_queue.lock();
-        queue.send_request(&requests).unwrap();
+        queue.send_request(queue_requests.as_ref()).unwrap();
         // Notify the device
         if queue.should_notify() {
             queue.notify_device();
@@ -89,13 +104,13 @@ impl BlockDevice for VirtioBlkDevice {
         queue.pop_finish_request();
 
         // Read response
-        let resp_read: BlockResp = resp_dma.read();
+        let resp_read: BlockResp = resp_dma.read_no_offset_val().unwrap();
         if resp_read.status != RespStatus::Ok as u8 {
             error!("Block device read error: {:?}", resp_read.status);
         }
     }
 
-    fn write_block(&self, index: usize, data: &DmaSlice<[u8; SECTOR_SIZE], DmaStream>) {}
+    fn write_block(&self, bio_request: &BioRequest) {}
 }
 
 #[repr(C)]
