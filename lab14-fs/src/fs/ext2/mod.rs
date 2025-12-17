@@ -16,6 +16,7 @@ use crate::{
 };
 
 mod block_group;
+mod dir_entry;
 mod inode;
 mod super_block;
 
