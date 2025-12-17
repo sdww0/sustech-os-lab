@@ -1,3 +1,5 @@
+#![expect(unused)]
+
 pub mod ext2;
 mod file;
 pub mod file_table;
@@ -6,16 +8,19 @@ pub mod ramfs;
 pub mod util;
 
 use crate::error::Result;
-use core::time::Duration;
+use core::{ffi::CStr, time::Duration};
 
 use alloc::{boxed::Box, string::String, sync::Arc};
 pub use file::{FileLike, Stderr, Stdin, Stdout};
-use ostd::mm::{VmReader, VmWriter};
+use ostd::{
+    early_println,
+    mm::{VmReader, VmWriter},
+};
 use spin::Once;
 
 pub static ROOT: Once<Box<dyn FileSystem>> = Once::new();
 
-pub static EXT2_FS: Once<Box<dyn FileSystem>> = Once::new();
+pub static EXT2_FS: Once<Arc<dyn FileSystem>> = Once::new();
 
 pub fn init() {
     ROOT.call_once(|| {
@@ -25,9 +30,36 @@ pub fn init() {
 
     for blk_device in crate::drivers::BLOCK_DEVICES.get().unwrap().lock().iter() {
         if let Ok(fs) = ext2::Ext2Fs::new(blk_device.clone()) {
-            EXT2_FS.call_once(|| Box::new(fs) as Box<dyn FileSystem>);
-            return;
+            EXT2_FS.call_once(|| fs as Arc<dyn FileSystem>);
+            break;
         }
+    }
+
+    if let Some(fs) = EXT2_FS.get() {
+        fs.root_inode(); // Warm up inode cache
+        ext2_test();
+    }
+}
+
+fn ext2_test() {
+    if let Some(fs) = EXT2_FS.get() {
+        let root_inode = fs.root_inode();
+        let result = root_inode.lookup("hello_ext2.txt").unwrap();
+
+        let mut buf: [u8; 128] = [0; 128];
+        result
+            .read_at(0, VmWriter::from(buf.as_mut()).to_fallible())
+            .unwrap();
+
+        early_println!(
+            "Read from ext2: {}",
+            CStr::from_bytes_until_nul(buf.as_ref())
+                .unwrap()
+                .to_str()
+                .unwrap()
+        );
+    } else {
+        early_println!("No Ext2 filesystem found.");
     }
 }
 
