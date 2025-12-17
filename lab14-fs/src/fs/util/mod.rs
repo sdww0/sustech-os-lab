@@ -1,3 +1,5 @@
+pub mod sector_ptr;
+
 use alloc::{string::String, sync::Arc};
 
 use crate::error::Result;
