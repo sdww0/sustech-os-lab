@@ -11,7 +11,7 @@ int main() {
     char buffer[100];
 
     // Open "hello" and read data
-    fd1 = open("hello_ext2.txt", O_WRONLY, 0644);
+    fd1 = open("hello.txt", O_WRONLY, 0644);
     if (fd1 < 0) {
         perror("Failed to open hello in child");
         exit(1);
